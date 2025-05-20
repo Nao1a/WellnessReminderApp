@@ -1,0 +1,2 @@
+john|pass123|USER
+drsmith|docpass|DOCTOR
