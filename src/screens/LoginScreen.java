@@ -1,10 +1,9 @@
 package screens;
 
+import java.awt.*;
+import javax.swing.*;
 import models.User;
 import services.AuthService;
-
-import javax.swing.*;
-import java.awt.*;
 
 public class LoginScreen extends JFrame {
     public LoginScreen() {
@@ -35,7 +34,8 @@ public class LoginScreen extends JFrame {
                 messageLabel.setText("Login successufl as " + user.getRole());
                 if (user.role.equalsIgnoreCase("USER")){
                     System.out.println("go to user Dashboeard");
-                    // new UserDashboardScreen(user);
+                    new UserDashboard(user);
+                    dispose();
                 } else {
                     System.out.println("go to Doctor Dashboard"); 
                 } 

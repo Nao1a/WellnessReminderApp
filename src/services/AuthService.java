@@ -14,7 +14,7 @@ public class AuthService {
                     String storedPassword = parts[1];
                     String role = parts[2];
 
-                    if ((storedUsername == username) && (storedPassword == password)) {
+                    if (storedUsername.equals(username) && storedPassword.equals(password)) {
                         return new User(storedUsername, storedPassword, role);
                     }
                 }

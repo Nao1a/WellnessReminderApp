@@ -3,16 +3,16 @@ package models;
 public class Reminder {
     private String type;
     private String time;
-    private String frequency;
+    private int frequency;
     private boolean acknowledged;
-    private boolean missed;
+    private String notes;
 
-    public Reminder(String type, String time, String frequency) {
+    public Reminder(String type, String time, int frequency , boolean acknowledged, String notes) {
         this.type = type;
         this.time = time;
         this.frequency = frequency;
         this.acknowledged = false;
-        this.missed = false;
+        this.notes = notes;
     }
 
     // Getters and Setters
@@ -32,11 +32,11 @@ public class Reminder {
         this.time = time;
     }
 
-    public String getFrequency() {
+    public int getFrequency() {
         return frequency;
     }
 
-    public void setFrequency(String frequency) {
+    public void setFrequency(int frequency) {
         this.frequency = frequency;
     }
 
@@ -46,13 +46,5 @@ public class Reminder {
 
     public void setAcknowledged(boolean acknowledged) {
         this.acknowledged = acknowledged;
-    }
-
-    public boolean isMissed() {
-        return missed;
-    }
-
-    public void setMissed(boolean missed) {
-        this.missed = missed;
     }
 }
