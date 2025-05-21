@@ -4,24 +4,23 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class User {
-    private String username;
+    private String username; // Changed from public static
     private String password;
-    public String role;
+    public String role; // Consider making this private with a getter too
 
     private List<Reminder> reminders;
     private List<Recommendation> recommendations;
 
     public User(String username, String password, String role) {
-        this.username = username;
+        this.username = username; // Now correctly assigns to the instance field
         this.password = password;
         this.role = role;
         this.reminders = new ArrayList<>();
         this.recommendations = new ArrayList<>();
-
     }
 
-    public String getUsername() {
-        return username;    
+    public String getUsername() { // Getter for the instance field
+        return this.username;
     }
     public String getPassword() {
         return password;
@@ -36,15 +35,12 @@ public class User {
         return new ArrayList<>(recommendations);
     }
 
-
-
     public void addReminder(Reminder reminder) {
         reminders.add(reminder);
     }
     public void addRecommendation(Recommendation recommendation) {
         recommendations.add(recommendation);
     }
-
 
     @Override
     public String toString() {
@@ -54,8 +50,5 @@ public class User {
             ", reminders=" + reminders.size() +
             ", recommendations=" + recommendations.size() +
             '}';
-}
-
-
-
+    }
 }

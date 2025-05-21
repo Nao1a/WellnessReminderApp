@@ -1,14 +1,11 @@
 package screens;
 
-import java.awt.*;
 import javax.swing.*;
 import models.Reminder;
-public class ReminderSetupScreen extends JFrame {
-    public ReminderSetupScreen(String type) {
-        setTitle("Set " + type + "Reminder");
-        setSize(400, 400);
-        setLayout(new GridLayout(0, 2, 10, 10));
-        setDefaultCloseOperation(DISPOSE_ON_CLOSE); // So dashboard stays open
+public class ReminderSetupScreen extends JPanel {
+    public ReminderSetupScreen(String type , Runnable goBackCallback) {
+        
+       
 
         // Shared fields
         add(new JLabel("Reminder Time (e.g. 08:00 AM):"));
@@ -51,8 +48,10 @@ public class ReminderSetupScreen extends JFrame {
 
             JOptionPane.showMessageDialog(this, "Reminder set for " + type + " at " + time + " every " + freq + " hours.\n" + notes);
             // Later: save to user.reminder or file
-            dispose();
+            // For now, just print to console
+            System.out.println("Reminder set for " + type + " at " + time + " every " + freq + " hours.\n" + notes);
+            goBackCallback.run();
         });
-        setVisible(true);
+        
     }
 }
