@@ -1,0 +1,2 @@
+Medication|2025-06-06 14:19:52|SET|Reminder configured. Details: Name:paracetamol, Dosage:2
+Movement|2025-06-06 14:20:20|SET|Reminder configured for Movement at 9:00.

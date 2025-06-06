@@ -59,9 +59,10 @@ public class UserDashboard extends JPanel { // Changed from JFrame
             if (text.contains("Eye Strain Break")) {
                 type = "Eye Strain";
             }
+            
 
 
-            ReminderSetupScreen setupScreen = new ReminderSetupScreen(type, () -> {
+            ReminderSetupScreen setupScreen = new ReminderSetupScreen(loggedInUser, type, () -> {
                 // This is the goBackCallback
                 mainFrame.setContentPane(this); // 'this' is the UserDashboard instance
                 mainFrame.setTitle("Wellness App - User Dashboard");

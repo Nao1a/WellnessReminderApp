@@ -47,4 +47,7 @@ public class Reminder {
     public void setAcknowledged(boolean acknowledged) {
         this.acknowledged = acknowledged;
     }
+    public String getNotes(){
+        return notes;
+    }
 }
