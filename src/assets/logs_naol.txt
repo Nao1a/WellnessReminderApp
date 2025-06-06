@@ -1,0 +1,1 @@
+Medication|2025-06-06 16:42:56|SET|Reminder configured. Details: Name:parcetamol, Dosage:2

@@ -7,6 +7,8 @@ import services.AuthService;
 
 public class LoginScreen extends JPanel { // Changed from JFrame
 
+    
+
     public LoginScreen() {
         // setTitle("wellness App - Login"); // No longer a JFrame
         // setSize(400, 300); // No longer a JFrame
@@ -47,29 +49,33 @@ public class LoginScreen extends JPanel { // Changed from JFrame
             if (user != null) {
                 messageLabel.setText("Login successful as " + user.getRole());
                 if (user.getRole().equalsIgnoreCase("USER")) {
-                    System.out.println("go to user Dashboard");
-                    UserDashboard dashboardPanel = new UserDashboard(user); // UserDashboard is now a JPanel
+                    UserDashboard dashboardPanel = new UserDashboard(user);
                     if (currentFrame != null) {
                         currentFrame.setContentPane(dashboardPanel);
                         currentFrame.setTitle("Wellness App - User Dashboard");
-                        currentFrame.setSize(600, 500); // Resize for dashboard
+                        currentFrame.setSize(600, 500);
                         currentFrame.setLocationRelativeTo(null);
                         currentFrame.revalidate();
                         currentFrame.repaint();
                     }
                 } else if (user.getRole().equalsIgnoreCase("DOCTOR")) {
-                    System.out.println("go to Doctor Dashboard");
-                    // Placeholder for Doctor Dashboard as a JPanel
-                    // DoctorDashboard doctorPanel = new DoctorDashboard(user);
-                    // if (currentFrame != null) {
-                    //    currentFrame.setContentPane(doctorPanel);
-                    //    currentFrame.setTitle("Wellness App - Doctor Dashboard");
-                    //    currentFrame.setSize(600, 500);
-                    //    currentFrame.setLocationRelativeTo(null);
-                    //    currentFrame.revalidate();
-                    //    currentFrame.repaint();
-                    // }
-                    messageLabel.setText("Doctor Dashboard not yet fully implemented in this panel flow.");
+                    DoctorDashboard doctorPanel = new DoctorDashboard(
+                        user.getUsername(), // Pass the logged-in doctor's username
+                        () -> {
+                            currentFrame.setContentPane(this); // Go back to LoginScreen
+                            currentFrame.setTitle("Wellness App - Login");
+                            currentFrame.revalidate();
+                            currentFrame.repaint();
+                        }
+                    );
+                    if (currentFrame != null) {
+                        currentFrame.setContentPane(doctorPanel);
+                        currentFrame.setTitle("Wellness App - Doctor Dashboard");
+                        currentFrame.setSize(800, 600);
+                        currentFrame.setLocationRelativeTo(null);
+                        currentFrame.revalidate();
+                        currentFrame.repaint();
+                    }
                 }
             } else {
                 messageLabel.setText("Invalid username or password. Please try again.");

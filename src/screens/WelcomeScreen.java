@@ -12,6 +12,8 @@ public class WelcomeScreen extends JPanel {
         welcomeLabel.setFont(new Font("Arial", Font.BOLD, 22));
         add(welcomeLabel, BorderLayout.CENTER);
 
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+
         JButton loginButton = new JButton("Login");
         loginButton.setFont(new Font("Arial", Font.PLAIN, 18));
         loginButton.addActionListener(e -> {
@@ -20,15 +22,35 @@ public class WelcomeScreen extends JPanel {
                 LoginScreen loginScreen = new LoginScreen();
                 mainFrame.setContentPane(loginScreen);
                 mainFrame.setTitle("Wellness App - Login");
-                mainFrame.pack(); // Adjust frame size to panel
+                mainFrame.pack();
                 mainFrame.setLocationRelativeTo(null);
                 mainFrame.revalidate();
                 mainFrame.repaint();
             }
         });
 
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        JButton signupButton = new JButton("Sign Up");
+        signupButton.setFont(new Font("Arial", Font.PLAIN, 18));
+        signupButton.addActionListener(e -> {
+            JFrame mainFrame = (JFrame) SwingUtilities.getWindowAncestor(this);
+            if (mainFrame != null) {
+                SignupScreen signupScreen = new SignupScreen(() -> {
+                    mainFrame.setContentPane(this); // Go back to WelcomeScreen
+                    mainFrame.setTitle("Wellness App - Welcome");
+                    mainFrame.revalidate();
+                    mainFrame.repaint();
+                });
+                mainFrame.setContentPane(signupScreen);
+                mainFrame.setTitle("Wellness App - Sign Up");
+                mainFrame.pack();
+                mainFrame.setLocationRelativeTo(null);
+                mainFrame.revalidate();
+                mainFrame.repaint();
+            }
+        });
+
         buttonPanel.add(loginButton);
+        buttonPanel.add(signupButton);
         add(buttonPanel, BorderLayout.SOUTH);
     }
 }

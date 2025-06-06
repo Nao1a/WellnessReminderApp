@@ -1,6 +1,7 @@
 package screens;
 
 import java.awt.*;
+import java.io.*;
 import javax.swing.*;
 import models.User;
 
@@ -15,16 +16,12 @@ public class UserDashboard extends JPanel { // Changed from JFrame
     }
 
     private void showDashboard() {
-        setLayout(new GridLayout(8, 1, 10, 10));
-        setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20)); // Add some padding
+        setLayout(new GridLayout(9, 1, 10, 10)); // Increased rows to accommodate the logout button
+        setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
-        // Use the loggedInUser's actual username
         String username = (loggedInUser != null && loggedInUser.getUsername() != null && !loggedInUser.getUsername().isEmpty()) 
                         ? loggedInUser.getUsername() 
-                        : "User"; // Fallback if username is not set
-        // Note: Your User.java has 'public static String username', which is problematic.
-        // It should be an instance field 'private String username' with a getter.
-        // The code above tries to use the instance's username.
+                        : "User";
 
         JLabel title = new JLabel("Welcome, " + username + "!", SwingConstants.CENTER);
         title.setFont(new Font("Arial", Font.BOLD, 24));
@@ -43,6 +40,28 @@ public class UserDashboard extends JPanel { // Changed from JFrame
             JOptionPane.showMessageDialog(this, "View Reminder Log functionality coming soon!");
         });
         add(viewLogBtn);
+
+        JButton viewRecommendationsBtn = new JButton("📋 View Recommendations");
+        viewRecommendationsBtn.setFont(new Font("Arial", Font.PLAIN, 18));
+        viewRecommendationsBtn.addActionListener(e -> viewRecommendations());
+        add(viewRecommendationsBtn);
+
+        // Add Logout Button
+        JButton logoutButton = new JButton("Logout");
+        logoutButton.setFont(new Font("Arial", Font.PLAIN, 18));
+        logoutButton.addActionListener(e -> {
+            JFrame mainFrame = (JFrame) SwingUtilities.getWindowAncestor(this);
+            if (mainFrame != null) {
+                LoginScreen loginScreen = new LoginScreen();
+                mainFrame.setContentPane(loginScreen);
+                mainFrame.setTitle("Wellness App - Login");
+                mainFrame.setSize(400, 300);
+                mainFrame.setLocationRelativeTo(null);
+                mainFrame.revalidate();
+                mainFrame.repaint();
+            }
+        });
+        add(logoutButton);
     }
 
     private JButton createReminderButton(String text) {
@@ -75,5 +94,39 @@ public class UserDashboard extends JPanel { // Changed from JFrame
             mainFrame.repaint();
         });
         return btn;
+    }
+
+    private void viewRecommendations() {
+        File recommendationFile = new File("assets/recommendations_" + loggedInUser.getUsername() + ".txt");
+        if (!recommendationFile.exists()) {
+            JOptionPane.showMessageDialog(this, "No recommendations found for you.", "Info", JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
+
+        // Debugging information
+        System.out.println("File exists: " + recommendationFile.exists());
+        System.out.println("File is writable: " + recommendationFile.canWrite());
+        System.out.println("File path: " + recommendationFile.getAbsolutePath());
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(recommendationFile))) {
+            StringBuilder recommendations = new StringBuilder();
+            recommendations.append("Recommendations for ").append(loggedInUser.getUsername()).append(":\n\n");
+            String line;
+            while ((line = reader.readLine()) != null) {
+                recommendations.append(line).append("\n");
+            }
+            JOptionPane.showMessageDialog(this, recommendations.toString(), "Your Recommendations", JOptionPane.INFORMATION_MESSAGE);
+        } catch (IOException ex) {
+            JOptionPane.showMessageDialog(this, "Failed to load recommendations.", "Error", JOptionPane.ERROR_MESSAGE);
+            return; // Exit if reading fails
+        }
+
+        // Attempt to delete the file after reading
+        if (recommendationFile.delete()) {
+            System.out.println("Recommendations file deleted successfully.");
+        } else {
+            System.err.println("Failed to delete recommendations file.");
+            JOptionPane.showMessageDialog(this, "Failed to delete recommendations file.", "Error", JOptionPane.ERROR_MESSAGE);
+        }
     }
 }
