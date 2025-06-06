@@ -1,13 +1,12 @@
 package screens;
 
 import java.awt.GridLayout;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 import javax.swing.*;
 import models.Reminder;
-import models.ReminderLog;
 import models.User;
-import services.ReminderLogger;
 
 public class ReminderSetupScreen extends JPanel {
     private User loggedInUser;
@@ -75,12 +74,17 @@ public class ReminderSetupScreen extends JPanel {
 
             Reminder reminder = new Reminder(type, selectedTime != null ? selectedTime : selectedInterval, 0, false, reminderSpecificNotes);
 
-            // Log the reminder setup event
-            if (loggedInUser != null) {
-                String logTimestamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
-                String logNotes = "Reminder configured. Details: " + reminder.getNotes();
-                ReminderLog logEntry = new ReminderLog(reminder.getType(), logTimestamp, "SET", logNotes);
-                ReminderLogger.log(loggedInUser, logEntry);
+            // Save reminder to file
+            String filename = "assets/reminder_" + loggedInUser.getUsername() + ".txt";
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename, true))) {
+                writer.write("Reminder Type: " + type + "\n");
+                writer.write(reminderSpecificNotes + "\n");
+                writer.write("---------------\n");
+                System.out.println("Reminder saved successfully in: " + filename);
+            } catch (IOException ex) {
+                JOptionPane.showMessageDialog(this, "Failed to save reminder to file.", "Error", JOptionPane.ERROR_MESSAGE);
+                ex.printStackTrace(); // Debugging
+                return;
             }
 
             JOptionPane.showMessageDialog(this, "Reminder set for " + type + ".\n" + reminderSpecificNotes);

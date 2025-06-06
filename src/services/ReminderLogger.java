@@ -14,9 +14,10 @@ public class ReminderLogger {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename, true))) {
             writer.write(log.toString());
             writer.newLine();
-            System.out.println("Reminder logged: " + log.toString());
+            System.out.println("Reminder interaction logged: " + log.toString());
         } catch (IOException e) {
-            System.out.println("Failed to log reminder: " + e.getMessage());
+            System.err.println("Failed to log reminder interaction: " + e.getMessage());
+            e.printStackTrace(); // Debugging
         }
     }
 }

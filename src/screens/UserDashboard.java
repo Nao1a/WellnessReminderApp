@@ -37,7 +37,23 @@ public class UserDashboard extends JPanel { // Changed from JFrame
         JButton viewLogBtn = new JButton("📜 View Reminder Log");
         viewLogBtn.setFont(new Font("Arial", Font.PLAIN, 18));
         viewLogBtn.addActionListener(e -> {
-            JOptionPane.showMessageDialog(this, "View Reminder Log functionality coming soon!");
+            JFrame mainFrame = (JFrame) SwingUtilities.getWindowAncestor(this);
+            if (mainFrame == null) {
+                System.err.println("Error: Could not find the main application window.");
+                return;
+            }
+
+            ViewReminderLogScreen logScreen = new ViewReminderLogScreen(loggedInUser, () -> {
+                mainFrame.setContentPane(this); // Return to UserDashboard
+                mainFrame.setTitle("Wellness App - User Dashboard");
+                mainFrame.revalidate();
+                mainFrame.repaint();
+            });
+
+            mainFrame.setContentPane(logScreen);
+            mainFrame.setTitle("Wellness App - View Reminder Log");
+            mainFrame.revalidate();
+            mainFrame.repaint();
         });
         add(viewLogBtn);
 

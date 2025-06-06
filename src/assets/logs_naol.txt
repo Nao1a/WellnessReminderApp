@@ -1,2 +1,1 @@
-Medication|2025-06-06 16:42:56|SET|Reminder configured. Details: Name:parcetamol, Dosage:2
-Sleep|2025-06-06 21:23:44|SET|Reminder configured. Details: Time: 10:00 PM
+Hydration|2025-06-06 22:23:43|SET|Reminder configured. Details: Interval: 30 minutes
