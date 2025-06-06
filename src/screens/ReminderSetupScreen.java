@@ -2,121 +2,92 @@ package screens;
 
 import java.awt.GridLayout;
 import java.text.SimpleDateFormat;
-import java.util.Date; // Import User model
-import javax.swing.*; // Import ReminderLog model
-import models.Reminder; // Import ReminderLogger service
-import models.ReminderLog; // For better layout
-import models.User; // For timestamp
-import services.ReminderLogger; // For timestamp
+import java.util.Date;
+import javax.swing.*;
+import models.Reminder;
+import models.ReminderLog;
+import models.User;
+import services.ReminderLogger;
 
 public class ReminderSetupScreen extends JPanel {
-    private User loggedInUser; // Store the logged-in user
+    private User loggedInUser;
 
-    // Modified constructor to accept User
     public ReminderSetupScreen(User user, String type, Runnable goBackCallback) {
-        this.loggedInUser = user; // Assign the user
+        this.loggedInUser = user;
 
-        // Consider a more structured layout
-        setLayout(new GridLayout(0, 2, 10, 10)); // 0 rows means as many as needed, 2 columns
+        setLayout(new GridLayout(0, 2, 10, 10));
         setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
         add(new JLabel("Reminder Type:"));
         add(new JLabel(type));
 
-        add(new JLabel("Reminder Time (e.g. 08:00 AM):"));
-        JTextField timeField = new JTextField();
-        add(timeField);
+        final JComboBox<String>[] timeDropdown = new JComboBox[]{null};
+        final JComboBox<String>[] intervalDropdown = new JComboBox[]{null};
 
-        add(new JLabel("Frequency (in hours, 0 for once):"));
-        JTextField freqField = new JTextField("0"); // Default to 0 for one-time
-        add(freqField);
-
-        JTextField nameField = null;
-        JTextField dosageField = null;
-
-        if (type.equalsIgnoreCase("Medication")) {
-            add(new JLabel("Medication Name:"));
-            nameField = new JTextField();
-            add(nameField);
-
-            add(new JLabel("Dosage:"));
-            dosageField = new JTextField();
-            add(dosageField);
+        // Configure dropdowns based on reminder type
+        if (type.equalsIgnoreCase("Hydration")) {
+            add(new JLabel("Interval:"));
+            intervalDropdown[0] = new JComboBox<>(new String[]{"30 minutes", "1 hour", "2 hours", "3 hours", "4 hours"});
+            add(intervalDropdown[0]);
+        } else if (type.equalsIgnoreCase("Medication")) {
+            add(new JLabel("Interval:"));
+            intervalDropdown[0] = new JComboBox<>(new String[]{"1 hour", "2 hours", "3 hours", "4 hours", "6 hours", "8 hours", "12 hours", "24 hours"});
+            add(intervalDropdown[0]);
+        } else if (type.equalsIgnoreCase("Sleep")) {
+            add(new JLabel("Time:"));
+            timeDropdown[0] = new JComboBox<>(new String[]{"7:00 PM", "8:00 PM", "9:00 PM", "10:00 PM", "11:00 PM", "12:00 AM", "1:00 AM", "2:00 AM"});
+            add(timeDropdown[0]);
+        } else if (type.equalsIgnoreCase("Eye Strain")) {
+            add(new JLabel("Interval:"));
+            intervalDropdown[0] = new JComboBox<>(new String[]{"30 minutes", "1 hour", "1:30 hours", "2 hours", "2:30 hours"});
+            add(intervalDropdown[0]);
+        } else if (type.equalsIgnoreCase("Meal")) {
+            add(new JLabel("Time:"));
+            timeDropdown[0] = new JComboBox<>(new String[]{"7:30 AM", "12:00 PM", "6:30 PM"});
+            add(timeDropdown[0]);
+        } else if (type.equalsIgnoreCase("Movement")) {
+            add(new JLabel("Interval:"));
+            intervalDropdown[0] = new JComboBox<>(new String[]{"1 hour", "2 hours", "3 hours", "4 hours"});
+            add(intervalDropdown[0]);
         }
-        // Ensure components are added in pairs for GridLayout or use a different layout manager
-        // For simplicity, if not medication, add empty JLabels to keep grid alignment
-        else {
-            add(new JLabel()); // Placeholder for name label
-            add(new JLabel()); // Placeholder for name field
-            add(new JLabel()); // Placeholder for dosage label
-            add(new JLabel()); // Placeholder for dosage field
-        }
 
-
+        // Save Button
         JButton saveBtn = new JButton("Save Reminder");
-        // Add an empty label then the button to span it correctly if needed, or adjust layout
-        add(new JLabel()); // Span for the button
+        add(new JLabel()); // Placeholder for alignment
         add(saveBtn);
 
+        // Back Button
+        JButton backButton = new JButton("Back");
+        add(new JLabel()); // Placeholder for alignment
+        add(backButton);
 
-        JTextField finalNameField = nameField;
-        JTextField finalDosageField = dosageField;
-
+        // Save Button Action Listener
         saveBtn.addActionListener(e -> {
-            String time = timeField.getText().trim();
-            if (time.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "Time cannot be empty.", "Input Error", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-            int freq;
-            try {
-                freq = Integer.parseInt(freqField.getText().trim());
-            } catch (NumberFormatException ex) {
-                JOptionPane.showMessageDialog(this, "Frequency must be a valid number.", "Input Error", JOptionPane.ERROR_MESSAGE);
+            String selectedTime = (timeDropdown[0] != null) ? (String) timeDropdown[0].getSelectedItem() : null;
+            String selectedInterval = (intervalDropdown[0] != null) ? (String) intervalDropdown[0].getSelectedItem() : null;
+
+            if (selectedTime == null && selectedInterval == null) {
+                JOptionPane.showMessageDialog(this, "Please select a valid time or interval.", "Input Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
 
-            String reminderSpecificNotes = "";
-            if (type.equalsIgnoreCase("Medication")) {
-                String medName = (finalNameField != null) ? finalNameField.getText().trim() : "";
-                String dosage = (finalDosageField != null) ? finalDosageField.getText().trim() : "";
-                if (medName.isEmpty()) {
-                     JOptionPane.showMessageDialog(this, "Medication Name cannot be empty.", "Input Error", JOptionPane.ERROR_MESSAGE);
-                     return;
-                }
-                reminderSpecificNotes = "Name:" + medName + ", Dosage:" + dosage;
-            }
-            // Create the reminder object
-            Reminder reminder = new Reminder(type, time, freq, false, reminderSpecificNotes);
+            String reminderSpecificNotes = (selectedTime != null) ? "Time: " + selectedTime : "Interval: " + selectedInterval;
+
+            Reminder reminder = new Reminder(type, selectedTime != null ? selectedTime : selectedInterval, 0, false, reminderSpecificNotes);
 
             // Log the reminder setup event
             if (loggedInUser != null) {
-                // Using current time for when the log is created (reminder is set)
                 String logTimestamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
                 String logNotes = "Reminder configured. Details: " + reminder.getNotes();
-                if (reminder.getNotes() == null || reminder.getNotes().isEmpty()) {
-                    logNotes = "Reminder configured for " + type + " at " + time + ".";
-                }
-                
                 ReminderLog logEntry = new ReminderLog(reminder.getType(), logTimestamp, "SET", logNotes);
                 ReminderLogger.log(loggedInUser, logEntry);
-            } else {
-                System.err.println("ReminderSetupScreen: LoggedInUser is null, cannot log reminder setup.");
-            }
-            
-            // Add reminder to user's list (if User model supports it directly)
-            // For now, this part is not implemented, but it's where you'd persist the reminder to the user
-            if (loggedInUser != null) {
-                // loggedInUser.addReminder(reminder); // Assuming User class has addReminder
-                // And then you'd save the user data, e.g., using DataStore
-                System.out.println("Reminder object created: " + reminder.getType() + " for user " + loggedInUser.getUsername());
             }
 
-
-            JOptionPane.showMessageDialog(this, "Reminder set for " + type + " at " + time + " every " + freq + " hours.\n" + reminderSpecificNotes);
-            System.out.println("Reminder set for " + type + " at " + time + " every " + freq + " hours.\n" + reminderSpecificNotes);
-            
+            JOptionPane.showMessageDialog(this, "Reminder set for " + type + ".\n" + reminderSpecificNotes);
             goBackCallback.run();
         });
+
+        // Back Button Action Listener
+        backButton.addActionListener(e -> goBackCallback.run());
     }
 }
