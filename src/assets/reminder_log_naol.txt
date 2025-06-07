@@ -1,0 +1,31 @@
+
+Sleep|2025-06-07T18:14:21.043941900|Acknowledged|User interacted with reminder.
+Sleep|2025-06-07T18:14:38.179571700|No Response|User interacted with reminder.
+Sleep|2025-06-07T18:29:15.311844100|No Response|User interacted with reminder.
+Sleep|2025-06-07T18:29:18.240716|Snoozed|User interacted with reminder.
+Sleep|2025-06-07T18:29:28.652520800|No Response|User interacted with reminder.
+Sleep|2025-06-07T18:32:21.800098|No Response|User interacted with reminder.
+Sleep|2025-06-07T18:32:43.703748600|Acknowledged|User interacted with reminder.
+Sleep|2025-06-07T18:33:02.600501600|Snoozed|User interacted with reminder.
+Sleep|2025-06-07T18:58:34.270145600|Snoozed|User interacted with reminder.
+Sleep|2025-06-07T18:58:47.263671700|No Response|User interacted with reminder.
+Eye Strain|2025-06-07T19:02:28.886491200|No Response|User interacted with reminder.
+Eye Strain|2025-06-07T19:03:33.820143800|Snoozed|User interacted with reminder.
+Eye Strain|2025-06-07T19:03:47.545973|Snoozed|User interacted with reminder.
+Eye Strain|2025-06-07T19:04:54.799800800|Missed|User interacted with reminder.
+Eye Strain|2025-06-07T19:04:55.544712800|Missed|User interacted with reminder.
+Eye Strain|2025-06-07T19:04:55.758939500|Missed|User interacted with reminder.
+Eye Strain|2025-06-07T19:04:56.309556200|Missed|User interacted with reminder.
+Eye Strain|2025-06-07T19:04:56.524842900|Missed|User interacted with reminder.
+Eye Strain|2025-06-07T19:56:45.014460800|Acknowledged|User interacted with reminder.
+Eye Strain|2025-06-07T19:56:45.699525100|Acknowledged|User interacted with reminder.
+Eye Strain|2025-06-07T19:56:46.599296100|Acknowledged|User interacted with reminder.
+Eye Strain|2025-06-07T19:56:47.343777|Acknowledged|User interacted with reminder.
+Eye Strain|2025-06-07T19:57:41.943469100|Missed|User interacted with reminder.
+Eye Strain|2025-06-07T19:58:41.334671600|No Response|User interacted with reminder.
+Eye Strain|2025-06-07T19:58:41.961815300|No Response|User interacted with reminder.
+Eye Strain|2025-06-07T19:58:45.898790600|No Response|User interacted with reminder.
+Eye Strain|2025-06-07T19:58:47.467657700|No Response|User interacted with reminder.
+Eye Strain|2025-06-07T20:51:19.077583200|Snoozed|User interacted with reminder.
+Eye Strain|2025-06-07T20:51:20.075337200|Snoozed|User interacted with reminder.
+Eye Strain|2025-06-07T20:51:20.288974200|Snoozed|User interacted with reminder.
