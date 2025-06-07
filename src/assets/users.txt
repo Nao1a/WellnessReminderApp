@@ -1,7 +1,0 @@
-john|pass123|USER
-naol|pass231|USER
-drsmith|docpass|DOCTOR
-
-dryamal|nextgoat|DOCTOR
-drmessi|thegoat|DOCTOR
-drneymar|theprince|DOCTOR
