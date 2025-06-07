@@ -2,65 +2,99 @@ package screens;
 
 import java.awt.*;
 import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
 import javax.swing.*;
 import models.User;
+import services.ReminderManager;
 
 public class ViewReminderLogScreen extends JPanel {
-    private final User loggedInUser;
-    private final DefaultListModel<String> reminderListModel = new DefaultListModel<>();
+    private User loggedInUser;
+    private ReminderManager reminderManager;
+    private JTextArea logArea;
+    private JList<String> reminderList;
+    private DefaultListModel<String> reminderListModel;
 
     public ViewReminderLogScreen(User user, Runnable goBackCallback) {
         this.loggedInUser = user;
-
+        this.reminderManager = new ReminderManager(user);
         setLayout(new BorderLayout(10, 10));
         setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
-        JLabel title = new JLabel("Your Reminders", SwingConstants.CENTER);
-        title.setFont(new Font("Arial", Font.BOLD, 24));
-        add(title, BorderLayout.NORTH);
+        // Create a split pane for reminders and logs
+        JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
+        splitPane.setDividerLocation(200);
 
-        // Load reminders into the list
-        JList<String> reminderList = new JList<>(reminderListModel);
-        reminderList.setFont(new Font("Arial", Font.PLAIN, 18));
+        // Reminders Panel
+        JPanel remindersPanel = new JPanel(new BorderLayout());
+        JLabel remindersLabel = new JLabel("Active Reminders", SwingConstants.CENTER);
+        remindersLabel.setFont(new Font("Arial", Font.BOLD, 18));
+        remindersPanel.add(remindersLabel, BorderLayout.NORTH);
+
+        reminderListModel = new DefaultListModel<>();
+        reminderList = new JList<>(reminderListModel);
+        reminderList.setFont(new Font("Arial", Font.PLAIN, 14));
         loadReminders();
-        add(new JScrollPane(reminderList), BorderLayout.CENTER);
+        remindersPanel.add(new JScrollPane(reminderList), BorderLayout.CENTER);
+
+        // Logs Panel
+        JPanel logsPanel = new JPanel(new BorderLayout());
+        JLabel logsLabel = new JLabel("Reminder Log", SwingConstants.CENTER);
+        logsLabel.setFont(new Font("Arial", Font.BOLD, 18));
+        logsPanel.add(logsLabel, BorderLayout.NORTH);
+
+        logArea = new JTextArea();
+        logArea.setEditable(false);
+        logArea.setFont(new Font("Arial", Font.PLAIN, 14));
+        loadLogs();
+        logsPanel.add(new JScrollPane(logArea), BorderLayout.CENTER);
+
+        splitPane.setTopComponent(remindersPanel);
+        splitPane.setBottomComponent(logsPanel);
+        add(splitPane, BorderLayout.CENTER);
 
         // Buttons Panel
-        JPanel buttonPanel = new JPanel(new GridLayout(1, 2, 10, 10));
-
-        // Delete Button
-        JButton deleteButton = new JButton("Delete Selected");
-        deleteButton.setFont(new Font("Arial", Font.PLAIN, 18));
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
+        
+        JButton deleteButton = new JButton("Delete Selected Reminder");
         deleteButton.addActionListener(e -> {
             int selectedIndex = reminderList.getSelectedIndex();
             if (selectedIndex != -1) {
                 String selectedReminder = reminderListModel.get(selectedIndex);
-                reminderListModel.remove(selectedIndex);
-                deleteReminderFromFile(selectedReminder);
+                String[] parts = selectedReminder.split("\n");
+                String type = parts[0].replace("Type: ", "").trim();
+                String interval = parts[1].replace("Interval: ", "").trim();
+                
+                int confirm = JOptionPane.showConfirmDialog(
+                    this,
+                    "Are you sure you want to delete this reminder?",
+                    "Confirm Deletion",
+                    JOptionPane.YES_NO_OPTION
+                );
+                
+                if (confirm == JOptionPane.YES_OPTION) {
+                    reminderManager.deleteReminder(type, interval);
+                    reminderListModel.remove(selectedIndex);
+                    loadReminders(); // Refresh the reminder list
+                    loadLogs(); // Refresh logs after deletion
+                }
             } else {
-                JOptionPane.showMessageDialog(this, "Please select a reminder to delete.", "Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Please select a reminder to delete.");
             }
         });
         buttonPanel.add(deleteButton);
 
-        // Back Button
         JButton backButton = new JButton("Back");
-        backButton.setFont(new Font("Arial", Font.PLAIN, 18));
         backButton.addActionListener(e -> goBackCallback.run());
         buttonPanel.add(backButton);
 
         add(buttonPanel, BorderLayout.SOUTH);
     }
 
-    // Load reminders from the file
     private void loadReminders() {
         String filename = "assets/reminder_" + loggedInUser.getUsername() + ".txt";
         File file = new File(filename);
 
         if (!file.exists()) {
-            JOptionPane.showMessageDialog(this, "No reminders found.", "Info", JOptionPane.INFORMATION_MESSAGE);
+            reminderListModel.addElement("No active reminders");
             return;
         }
 
@@ -69,49 +103,44 @@ public class ViewReminderLogScreen extends JPanel {
             StringBuilder reminder = new StringBuilder();
             while ((line = reader.readLine()) != null) {
                 if (line.equals("---------------")) {
-                    reminderListModel.addElement(reminder.toString().trim());
-                    reminder.setLength(0); // Clear the StringBuilder
+                    if (reminder.length() > 0) {
+                        reminderListModel.addElement(reminder.toString().trim());
+                        reminder.setLength(0);
+                    }
                 } else {
                     reminder.append(line).append("\n");
                 }
             }
         } catch (IOException e) {
-            JOptionPane.showMessageDialog(this, "Failed to load reminders.", "Error", JOptionPane.ERROR_MESSAGE);
+            reminderListModel.addElement("Error loading reminders: " + e.getMessage());
         }
     }
 
-    // Delete a reminder from the file
-    private void deleteReminderFromFile(String reminderToDelete) {
-        String filename = "assets/reminder_" + loggedInUser.getUsername() + ".txt";
-        File file = new File(filename);
-        List<String> updatedReminders = new ArrayList<>();
-
-        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-            String line;
-            StringBuilder reminder = new StringBuilder();
-            while ((line = reader.readLine()) != null) {
-                if (line.equals("---------------")) {
-                    if (!reminder.toString().trim().equals(reminderToDelete.trim())) {
-                        updatedReminders.add(reminder.toString().trim());
-                    }
-                    reminder.setLength(0); // Clear the StringBuilder
-                } else {
-                    reminder.append(line).append("\n");
-                }
-            }
-        } catch (IOException e) {
-            JOptionPane.showMessageDialog(this, "Failed to delete reminder.", "Error", JOptionPane.ERROR_MESSAGE);
+    private void loadLogs() {
+        String logFileName = "assets/reminder_log_" + loggedInUser.getUsername() + ".txt";
+        File logFile = new File(logFileName);
+        
+        if (!logFile.exists()) {
+            logArea.setText("No reminder logs found.");
             return;
         }
 
-        // Write updated reminders back to the file
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
-            for (String updatedReminder : updatedReminders) {
-                writer.write(updatedReminder);
-                writer.write("\n---------------\n");
+        try (BufferedReader reader = new BufferedReader(new FileReader(logFile))) {
+            StringBuilder logs = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] parts = line.split("\\|");
+                if (parts.length >= 4) {
+                    logs.append("Type: ").append(parts[0]).append("\n");
+                    logs.append("Time: ").append(parts[1]).append("\n");
+                    logs.append("Response: ").append(parts[2]).append("\n");
+                    logs.append("Notes: ").append(parts[3]).append("\n");
+                    logs.append("---------------\n");
+                }
             }
+            logArea.setText(logs.toString());
         } catch (IOException e) {
-            JOptionPane.showMessageDialog(this, "Failed to update reminders file.", "Error", JOptionPane.ERROR_MESSAGE);
+            logArea.setText("Error reading log file: " + e.getMessage());
         }
     }
 }

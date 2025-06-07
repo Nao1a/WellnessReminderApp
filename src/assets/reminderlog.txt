@@ -1,0 +1,5 @@
+Reminder Type: Movement
+Interval: 60 minutes
+Created At: 2025-06-07T11:37:42.934483700
+Next Reminder: 2025-06-07T12:37:42.934483700
+---------------

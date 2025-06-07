@@ -1,9 +1,0 @@
-Reminder Type: Hydration
-Interval: 30 minutes
----------------
-Reminder Type: Hydration
-Interval: 30 minutes
----------------
-Reminder Type: Eye Strain
-Interval: 30 minutes
----------------

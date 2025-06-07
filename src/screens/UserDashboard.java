@@ -4,13 +4,16 @@ import java.awt.*;
 import java.io.*;
 import javax.swing.*;
 import models.User;
+import services.ReminderManager;
 
 public class UserDashboard extends JPanel { // Changed from JFrame
     private User loggedInUser;
+    private ReminderManager reminderManager;
     // private JFrame parentFrame; // No longer needed if we get the main frame dynamically
 
     public UserDashboard(User user) { // Constructor now only takes User
         this.loggedInUser = user;
+        this.reminderManager = new ReminderManager(user);
         // JFrame specific setup (setTitle, setSize, setDefaultCloseOperation) removed
         showDashboard();
     }

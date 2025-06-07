@@ -1,53 +1,44 @@
 package models;
 
+import java.time.LocalDateTime;
+
 public class Reminder {
     private String type;
-    private String time;
-    private int frequency;
-    private boolean acknowledged;
-    private String notes;
+    private int intervalMinutes;
+    private LocalDateTime createdAt;
+    private LocalDateTime nextReminderTime;
 
-    public Reminder(String type, String time, int frequency , boolean acknowledged, String notes) {
+    public Reminder(String type, int intervalMinutes) {
         this.type = type;
-        this.time = time;
-        this.frequency = frequency;
-        this.acknowledged = false;
-        this.notes = notes;
+        this.intervalMinutes = intervalMinutes;
+        this.createdAt = LocalDateTime.now();
+        this.nextReminderTime = createdAt.plusMinutes(intervalMinutes);
     }
 
-    // Getters and Setters
+    // Getters and setters
     public String getType() {
         return type;
     }
 
-    public void setType(String type) {
-        this.type = type;
+    public int getIntervalMinutes() {
+        return intervalMinutes;
     }
 
-    public String getTime() {
-        return time;
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
     }
 
-    public void setTime(String time) {
-        this.time = time;
+    public LocalDateTime getNextReminderTime() {
+        return nextReminderTime;
     }
 
-    public int getFrequency() {
-        return frequency;
+    public void updateNextReminderTime() {
+        this.nextReminderTime = LocalDateTime.now().plusMinutes(intervalMinutes);
     }
 
-    public void setFrequency(int frequency) {
-        this.frequency = frequency;
-    }
-
-    public boolean isAcknowledged() {
-        return acknowledged;
-    }
-
-    public void setAcknowledged(boolean acknowledged) {
-        this.acknowledged = acknowledged;
-    }
-    public String getNotes(){
-        return notes;
+    @Override
+    public String toString() {
+        return String.format("Reminder Type: %s\nInterval: %d minutes\nCreated At: %s\nNext Reminder: %s\n---------------",
+            type, intervalMinutes, createdAt, nextReminderTime);
     }
 }

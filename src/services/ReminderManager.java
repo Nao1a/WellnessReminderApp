@@ -1,7 +1,9 @@
 package services;
 
 import java.io.*;
-import java.text.SimpleDateFormat;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.Timer;
 import javax.swing.*;
@@ -13,31 +15,19 @@ public class ReminderManager {
     private final User loggedInUser;
     private final List<Reminder> reminders = new ArrayList<>();
     private final Timer timer = new Timer();
-    private final String assetsDir = "src/assets"; // Directory for storing reminder files
+    private final NotificationService notificationService;
+    private final String reminderFileName;
 
     public ReminderManager(User user) {
         this.loggedInUser = user;
-        ensureAssetsDirectoryExists();
+        this.notificationService = new NotificationService();
+        this.reminderFileName = "assets/reminder_" + user.getUsername() + ".txt";
         loadReminders();
         startReminderCheck();
     }
 
-    // Ensure the assets directory exists
-    private void ensureAssetsDirectoryExists() {
-        File dir = new File(assetsDir);
-        if (!dir.exists()) {
-            if (dir.mkdir()) {
-                System.out.println("Assets directory created.");
-            } else {
-                System.err.println("Failed to create assets directory.");
-            }
-        }
-    }
-
-    // Load reminders from the user's reminder file
     private void loadReminders() {
-        String filename = assetsDir + "/reminder_" + loggedInUser.getUsername() + ".txt";
-        File file = new File(filename);
+        File file = new File(reminderFileName);
 
         if (!file.exists()) {
             System.out.println("No reminders found for user: " + loggedInUser.getUsername());
@@ -49,38 +39,42 @@ public class ReminderManager {
             while ((line = reader.readLine()) != null) {
                 if (line.startsWith("Reminder Type:")) {
                     String type = line.split(":")[1].trim();
-                    String timeOrInterval = reader.readLine().split(":")[1].trim();
-                    reminders.add(new Reminder(type, timeOrInterval, 0, false, ""));
+                    String intervalLine = reader.readLine();
+                    int interval = Integer.parseInt(intervalLine.split(":")[1].trim().split(" ")[0]);
+                    reminders.add(new Reminder(type, interval));
                 }
-                reader.readLine(); // Skip separator line
             }
         } catch (IOException e) {
             System.err.println("Failed to load reminders: " + e.getMessage());
         }
     }
 
-    // Start a timer to check reminders periodically
     private void startReminderCheck() {
         timer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
                 checkReminders();
             }
-        }, 0, 60 * 1000); // Check every minute
+        }, 0, 60000); // Check every minute
     }
 
-    // Check if any reminders are due
     private void checkReminders() {
-        String currentTime = new SimpleDateFormat("hh:mm a").format(new Date());
-
+        LocalDateTime now = LocalDateTime.now();
+        boolean needsSave = false;
+        
         for (Reminder reminder : reminders) {
-            if (reminder.getTime().equalsIgnoreCase(currentTime)) {
+            if (now.isAfter(reminder.getNextReminderTime()) || now.isEqual(reminder.getNextReminderTime())) {
                 showReminderPopup(reminder);
+                reminder.updateNextReminderTime();
+                needsSave = true;
             }
+        }
+        
+        if (needsSave) {
+            saveReminders();
         }
     }
 
-    // Show a popup for the due reminder
     private void showReminderPopup(Reminder reminder) {
         String[] options = {"Acknowledge", "Snooze", "Missed"};
         int choice = JOptionPane.showOptionDialog(
@@ -97,7 +91,6 @@ public class ReminderManager {
         handleUserResponse(reminder, choice);
     }
 
-    // Handle the user's response to the reminder
     private void handleUserResponse(Reminder reminder, int choice) {
         String response;
         switch (choice) {
@@ -113,7 +106,6 @@ public class ReminderManager {
         logReminderResponse(reminder, response);
     }
 
-    // Snooze the reminder for 5 minutes
     private void snoozeReminder(Reminder reminder) {
         TimerTask snoozeTask = new TimerTask() {
             @Override
@@ -124,16 +116,78 @@ public class ReminderManager {
         timer.schedule(snoozeTask, 5 * 60 * 1000); // Snooze for 5 minutes
     }
 
-    // Log the user's response to a log file
-    private void logReminderResponse(Reminder reminder, String response) {
-        String timestamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
-        ReminderLog log = new ReminderLog(reminder.getType(), timestamp, response, "User interacted with reminder.");
-
-        ReminderLogger.log(loggedInUser, log);
+    private void saveReminders() {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(reminderFileName))) {
+            for (Reminder reminder : reminders) {
+                writer.write("Reminder Type: " + reminder.getType() + "\n");
+                writer.write("Interval: " + reminder.getIntervalMinutes() + " minutes\n");
+                writer.write("Created At: " + reminder.getCreatedAt() + "\n");
+                writer.write("Next Reminder: " + reminder.getNextReminderTime() + "\n");
+                writer.write("---------------\n");
+            }
+        } catch (IOException e) {
+            System.err.println("Failed to save reminders: " + e.getMessage());
+        }
     }
 
-    // Stop the reminder manager
+    private void logReminderResponse(Reminder reminder, String response) {
+        String timestamp = LocalDateTime.now().toString();
+        ReminderLog log = new ReminderLog(reminder.getType(), timestamp, response, "User interacted with reminder.");
+        
+        // Save log to user-specific file in assets folder
+        String logFileName = "assets/reminder_log_" + loggedInUser.getUsername() + ".txt";
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(logFileName, true))) {
+            writer.write(log.toString());
+            writer.newLine();
+        } catch (IOException e) {
+            System.err.println("Failed to save reminder log: " + e.getMessage());
+        }
+    }
+
     public void stop() {
         timer.cancel();
+    }
+
+    public void deleteReminder(String type, String interval) {
+        // Remove from memory
+        reminders.removeIf(r -> r.getType().equals(type) && 
+            String.valueOf(r.getIntervalMinutes()).equals(interval.split(" ")[0]));
+
+        // Remove from file
+        try {
+            List<String> lines = Files.readAllLines(Paths.get(reminderFileName));
+            List<String> newLines = new ArrayList<>();
+            boolean skipNext = false;
+            int linesToSkip = 0;
+            
+            for (int i = 0; i < lines.size(); i++) {
+                String line = lines.get(i);
+                if (line.startsWith("Reminder Type:") && 
+                    line.contains(type) && 
+                    i + 1 < lines.size() && 
+                    lines.get(i + 1).contains(interval.split(" ")[0])) {
+                    skipNext = true;
+                    linesToSkip = 5; // Skip the next 5 lines (type, interval, created, next, separator)
+                    continue;
+                }
+                if (skipNext) {
+                    linesToSkip--;
+                    if (linesToSkip <= 0) {
+                        skipNext = false;
+                    }
+                    continue;
+                }
+                newLines.add(line);
+            }
+            
+            Files.write(Paths.get(reminderFileName), newLines);
+        } catch (IOException e) {
+            System.err.println("Failed to delete reminder: " + e.getMessage());
+        }
+    }
+
+    public void addReminder(Reminder reminder) {
+        reminders.add(reminder);
+        saveReminders();
     }
 }

@@ -7,12 +7,15 @@ import java.io.IOException;
 import javax.swing.*;
 import models.Reminder;
 import models.User;
+import services.ReminderManager;
 
 public class ReminderSetupScreen extends JPanel {
     private User loggedInUser;
+    private ReminderManager reminderManager;
 
     public ReminderSetupScreen(User user, String type, Runnable goBackCallback) {
         this.loggedInUser = user;
+        this.reminderManager = new ReminderManager(user);
 
         setLayout(new GridLayout(0, 2, 10, 10));
         setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
@@ -38,7 +41,7 @@ public class ReminderSetupScreen extends JPanel {
             add(timeDropdown[0]);
         } else if (type.equalsIgnoreCase("Eye Strain")) {
             add(new JLabel("Interval:"));
-            intervalDropdown[0] = new JComboBox<>(new String[]{"30 minutes", "1 hour", "1:30 hours", "2 hours", "2:30 hours"});
+            intervalDropdown[0] = new JComboBox<>(new String[]{"1 minute", "30 minutes", "1 hour", "1:30 hours", "2 hours", "2:30 hours"});
             add(intervalDropdown[0]);
         } else if (type.equalsIgnoreCase("Meal")) {
             add(new JLabel("Time:"));
@@ -72,20 +75,25 @@ public class ReminderSetupScreen extends JPanel {
 
             String reminderSpecificNotes = (selectedTime != null) ? "Time: " + selectedTime : "Interval: " + selectedInterval;
 
-            Reminder reminder = new Reminder(type, selectedTime != null ? selectedTime : selectedInterval, 0, false, reminderSpecificNotes);
-
-            // Save reminder to file
-            String filename = "assets/reminder_" + loggedInUser.getUsername() + ".txt";
-            try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename, true))) {
-                writer.write("Reminder Type: " + type + "\n");
-                writer.write(reminderSpecificNotes + "\n");
-                writer.write("---------------\n");
-                System.out.println("Reminder saved successfully in: " + filename);
-            } catch (IOException ex) {
-                JOptionPane.showMessageDialog(this, "Failed to save reminder to file.", "Error", JOptionPane.ERROR_MESSAGE);
-                ex.printStackTrace(); // Debugging
-                return;
+            // Convert interval string to minutes
+            int intervalMinutes = 0;
+            if (selectedInterval != null) {
+                String[] parts = selectedInterval.split(" ");
+                int value = Integer.parseInt(parts[0]);
+                if (parts[1].startsWith("hour")) {
+                    intervalMinutes = value * 60;
+                } else if (parts[1].startsWith("minute")) {
+                    intervalMinutes = value;
+                } else if (parts[1].startsWith("1:30")) {
+                    intervalMinutes = 90; // 1 hour and 30 minutes
+                } else if (parts[1].startsWith("2:30")) {
+                    intervalMinutes = 150; // 2 hours and 30 minutes
+                }
             }
+
+            // Create and save reminder using ReminderManager
+            Reminder reminder = new Reminder(type, intervalMinutes);
+            reminderManager.addReminder(reminder);
 
             JOptionPane.showMessageDialog(this, "Reminder set for " + type + ".\n" + reminderSpecificNotes);
             goBackCallback.run();
