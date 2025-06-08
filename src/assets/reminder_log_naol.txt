@@ -126,3 +126,7 @@ Eye Strain|2025-06-08T13:07:00.856118900|Missed|User interacted with reminder.
 Eye Strain|2025-06-08T13:07:51.202091|Snoozed|User interacted with reminder.
 Eye Strain|2025-06-08T13:08:24.576125500|Snoozed|User interacted with reminder.
 Eye Strain|2025-06-08T13:08:50.410566400|Acknowledged|User interacted with reminder.
+Eye Strain|2025-06-08T14:15:19.052698100|Acknowledged|User interacted with reminder.
+Eye Strain|2025-06-08T14:16:41.570367200|Acknowledged|User interacted with reminder.
+Eye Strain|2025-06-08T14:17:16.354343300|Acknowledged|User interacted with reminder.
+Eye Strain|2025-06-08T14:19:12.828483800|Acknowledged|User interacted with reminder.

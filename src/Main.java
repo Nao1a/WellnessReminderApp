@@ -1,4 +1,4 @@
-import java.awt.Dimension; // Changed from LoginScreen
+import java.awt.Dimension;
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
 import models.User;
@@ -8,10 +8,7 @@ import services.*;
 public class Main {
     public static void main(String[] args) {
         // Initialize services
-        User currentUser = new User("naol", "pass231", "USER");
-        ReminderService reminderService = new ReminderService();
         NotificationService notificationService = new NotificationService();
-        ReminderManager reminderManager = ReminderManager.getInstance(currentUser);
 
         // Start the GUI
         SwingUtilities.invokeLater(() -> {

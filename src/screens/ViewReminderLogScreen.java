@@ -82,16 +82,18 @@ public class ViewReminderLogScreen extends JPanel {
             String line;
             StringBuilder reminderText = new StringBuilder();
             while ((line = reader.readLine()) != null) {
-                if (line.startsWith("ID:")) {
+                if (line.startsWith("Reminder ID:")) {
                     if (reminderText.length() > 0) {
-                        reminderListModel.addElement(reminderText.toString());
+                        reminderListModel.addElement(reminderText.toString().trim());
                         reminderText = new StringBuilder();
                     }
                 }
-                reminderText.append(line).append("\n");
+                if (!line.trim().isEmpty()) {
+                    reminderText.append(line).append("\n");
+                }
             }
             if (reminderText.length() > 0) {
-                reminderListModel.addElement(reminderText.toString());
+                reminderListModel.addElement(reminderText.toString().trim());
             }
         } catch (IOException e) {
             JOptionPane.showMessageDialog(this,
@@ -112,7 +114,9 @@ public class ViewReminderLogScreen extends JPanel {
         }
 
         String selectedReminder = reminderListModel.get(selectedIndex);
-        String id = selectedReminder.split("\n")[0].substring(4).trim(); // Extract ID from "ID: xxxxxx"
+        // Extract ID from 'Reminder ID:xxxxxx' (first line)
+        String firstLine = selectedReminder.split("\n")[0];
+        String id = firstLine.replace("Reminder ID:", "").trim();
 
         int confirm = JOptionPane.showConfirmDialog(this,
             "Are you sure you want to delete this reminder?",

@@ -4,6 +4,7 @@ import java.awt.*;
 import javax.swing.*;
 import models.User;
 import services.AuthService;
+import services.ReminderManager;
 
 public class LoginScreen extends JPanel { // Changed from JFrame
 
@@ -49,6 +50,10 @@ public class LoginScreen extends JPanel { // Changed from JFrame
             if (user != null) {
                 messageLabel.setText("Login successful as " + user.getRole());
                 if (user.getRole().equalsIgnoreCase("USER")) {
+                    // Initialize ReminderManager only after successful login
+                    ReminderManager reminderManager = ReminderManager.getInstance(user);
+                    reminderManager.start(); // Start checking reminders
+                    
                     UserDashboard dashboardPanel = new UserDashboard(user);
                     if (currentFrame != null) {
                         currentFrame.setContentPane(dashboardPanel);

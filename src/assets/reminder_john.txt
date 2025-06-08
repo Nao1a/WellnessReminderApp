@@ -1,1 +1,6 @@
+Reminder ID:20250608143819
+Type:Hydration
+Interval:30 minutes
+Created At:2025-06-08T14:38:19.381402500
+Next Reminder:2025-06-08T15:08:19.380383300
 

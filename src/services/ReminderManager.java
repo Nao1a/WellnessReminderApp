@@ -20,11 +20,11 @@ public class ReminderManager {
     private static final Map<String, ReminderManager> instances = new HashMap<>();
     private final User loggedInUser;
     private final ArrayList<Reminder> reminders = new ArrayList<>();
-    private final Timer timer = new Timer();
+    private Timer timer = new Timer();
     private final NotificationService notificationService;
     private final String reminderFileName;
     private final Map<String, TimerTask> reminderTasks = new HashMap<>(); // Track timer tasks by reminder ID
-    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss[.SSSSSSSSS][.SSSSSS]");
+    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss[.SSSSSSSSS]");
     private final ReminderService reminderService;
 
     public static ReminderManager getInstance(User user) {
@@ -37,7 +37,30 @@ public class ReminderManager {
         this.reminderFileName = "assets/reminder_" + user.getUsername() + ".txt";
         this.reminderService = new ReminderService();
         loadReminders();
+    }
+
+    public void start() {
         startReminderCheck();
+    }
+
+    public void stop() {
+        if (timer != null) {
+            timer.cancel();
+        }
+        instances.remove(loggedInUser.getUsername());
+    }
+
+    private void startReminderCheck() {
+        if (timer != null) {
+            timer.cancel();
+        }
+        timer = new Timer();
+        timer.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                checkReminders();
+            }
+        }, 0, 30000); // Check every 30 seconds (30000 milliseconds)
     }
 
     public void loadReminders() {
@@ -63,6 +86,14 @@ public class ReminderManager {
                         reader.readLine();
                         
                         try {
+                            // Clean up the date string by removing duplicate nanoseconds
+                            if (nextReminder.contains(".")) {
+                                String[] parts = nextReminder.split("\\.");
+                                if (parts.length > 2) {
+                                    nextReminder = parts[0] + "." + parts[1];
+                                }
+                            }
+                            
                             int intervalMinutes = parseIntervalMinutes(intervalStr);
                             Reminder reminder = new Reminder(type, intervalMinutes);
                             // Set the ID and next reminder time manually since they're not in the constructor
@@ -98,15 +129,6 @@ public class ReminderManager {
             System.err.println("Error loading reminders: " + e.getMessage());
             e.printStackTrace();
         }
-    }
-
-    private void startReminderCheck() {
-        timer.scheduleAtFixedRate(new TimerTask() {
-            @Override
-            public void run() {
-                checkReminders();
-            }
-        }, 0, 30000); // Check every 30 seconds (30000 milliseconds)
     }
 
     private void checkReminders() {
@@ -259,11 +281,6 @@ public class ReminderManager {
         } catch (IOException e) {
             System.err.println("Failed to save reminder log: " + e.getMessage());
         }
-    }
-
-    public void stop() {
-        timer.cancel();
-        instances.remove(loggedInUser.getUsername());
     }
 
     // Helper method to parse interval string to minutes

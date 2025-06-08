@@ -34,16 +34,29 @@ public class ReminderSetupScreen extends JPanel {
             add(intervalDropdown[0]);
         } else if (type.equalsIgnoreCase("Sleep")) {
             add(new JLabel("Time:"));
-            timeDropdown[0] = new JComboBox<>(new String[]{"7:00 PM", "8:00 PM", "9:00 PM", "10:00 PM", "11:00 PM", "12:00 AM", "1:00 AM", "2:00 AM"});
+            timeDropdown[0] = new JComboBox<>(new String[]{
+                "8:00 PM", "8:30 PM", "9:00 PM", "9:30 PM", "10:00 PM", "10:30 PM", 
+                "11:00 PM", "11:30 PM", "12:00 AM", "12:30 AM", "1:00 AM"
+            });
             add(timeDropdown[0]);
+            add(new JLabel("Interval:"));
+            intervalDropdown[0] = new JComboBox<>(new String[]{"24 hours", "12 hours"});
+            add(intervalDropdown[0]);
         } else if (type.equalsIgnoreCase("Eye Strain")) {
             add(new JLabel("Interval:"));
             intervalDropdown[0] = new JComboBox<>(new String[]{"1 minute", "30 minutes", "1 hour", "1:30 hours", "2 hours", "2:30 hours"});
             add(intervalDropdown[0]);
         } else if (type.equalsIgnoreCase("Meal")) {
             add(new JLabel("Time:"));
-            timeDropdown[0] = new JComboBox<>(new String[]{"7:30 AM", "12:00 PM", "6:30 PM"});
+            timeDropdown[0] = new JComboBox<>(new String[]{
+                "7:00 AM", "7:30 AM", "8:00 AM", "8:30 AM", "9:00 AM", // Breakfast
+                "11:30 AM", "12:00 PM", "12:30 PM", "1:00 PM", "1:30 PM", // Lunch
+                "5:30 PM", "6:00 PM", "6:30 PM", "7:00 PM", "7:30 PM" // Dinner
+            });
             add(timeDropdown[0]);
+            add(new JLabel("Interval:"));
+            intervalDropdown[0] = new JComboBox<>(new String[]{"24 hours", "12 hours"});
+            add(intervalDropdown[0]);
         } else if (type.equalsIgnoreCase("Movement")) {
             add(new JLabel("Interval:"));
             intervalDropdown[0] = new JComboBox<>(new String[]{"1 hour", "2 hours", "3 hours", "4 hours"});
@@ -75,23 +88,11 @@ public class ReminderSetupScreen extends JPanel {
             int intervalMinutes = 0;
             java.time.LocalDateTime nextReminderTime = java.time.LocalDateTime.now();
 
-            if (selectedInterval != null) {
-                String[] parts = selectedInterval.split(" ");
-                int value = Integer.parseInt(parts[0]);
-                if (parts[1].startsWith("hour")) {
-                    intervalMinutes = value * 60;
-                } else if (parts[1].startsWith("minute")) {
-                    intervalMinutes = value;
-                } else if (parts[1].startsWith("1:30")) {
-                    intervalMinutes = 90;
-                } else if (parts[1].startsWith("2:30")) {
-                    intervalMinutes = 150;
-                }
-                nextReminderTime = java.time.LocalDateTime.now().plusMinutes(intervalMinutes);
-            } else if (selectedTime != null) {
-                // Parse the selected time (e.g., "10:00 PM") to LocalDateTime for today or tomorrow
+            if (type.equalsIgnoreCase("Sleep") || type.equalsIgnoreCase("Meal")) {
+                // Normalize selectedTime to have only one space before AM/PM
+                String normalizedTime = selectedTime.trim().replaceAll("\\s+(AM|PM)", " $1");
                 java.time.LocalTime time = java.time.LocalTime.parse(
-                    selectedTime.replace("AM", " AM").replace("PM", " PM").trim(),
+                    normalizedTime,
                     java.time.format.DateTimeFormatter.ofPattern("h:mm a")
                 );
                 java.time.LocalDateTime now = java.time.LocalDateTime.now();
@@ -99,10 +100,38 @@ public class ReminderSetupScreen extends JPanel {
                 if (nextReminderTime.isBefore(now)) {
                     nextReminderTime = nextReminderTime.plusDays(1); // If time has passed today, set for tomorrow
                 }
-                intervalMinutes = 24 * 60; // Default to daily
+                if (selectedInterval != null) {
+                    String[] parts = selectedInterval.split(" ");
+                    int value = Integer.parseInt(parts[0]);
+                    if (parts[1].toLowerCase().startsWith("hour")) {
+                        intervalMinutes = value * 60;
+                    } else if (parts[1].toLowerCase().startsWith("minute")) {
+                        intervalMinutes = value;
+                    } else if (parts[1].startsWith("1:30")) {
+                        intervalMinutes = 90;
+                    } else if (parts[1].startsWith("2:30")) {
+                        intervalMinutes = 150;
+                    }
+                } else {
+                    intervalMinutes = 24 * 60; // Default to daily
+                }
+            } else if (selectedInterval != null) {
+                String[] parts = selectedInterval.split(" ");
+                int value = Integer.parseInt(parts[0]);
+                if (parts[1].toLowerCase().startsWith("hour")) {
+                    intervalMinutes = value * 60;
+                } else if (parts[1].toLowerCase().startsWith("minute")) {
+                    intervalMinutes = value;
+                } else if (parts[1].startsWith("1:30")) {
+                    intervalMinutes = 90;
+                } else if (parts[1].startsWith("2:30")) {
+                    intervalMinutes = 150;
+                }
+                nextReminderTime = java.time.LocalDateTime.now().plusMinutes(intervalMinutes);
             }
 
             Reminder reminder = new Reminder(type, intervalMinutes);
+            reminder.setNextReminderTime(nextReminderTime);
             try {
                 reminderManager.addReminder(reminder);
                 JOptionPane.showMessageDialog(this, "Reminder set for " + type + ".\n" + reminderSpecificNotes);

@@ -69,6 +69,9 @@ public class UserDashboard extends JPanel { // Changed from JFrame
         JButton logoutButton = new JButton("Logout");
         logoutButton.setFont(new Font("Arial", Font.PLAIN, 18));
         logoutButton.addActionListener(e -> {
+            // Stop the reminder manager before logging out
+            reminderManager.stop();
+            
             JFrame mainFrame = (JFrame) SwingUtilities.getWindowAncestor(this);
             if (mainFrame != null) {
                 LoginScreen loginScreen = new LoginScreen();
