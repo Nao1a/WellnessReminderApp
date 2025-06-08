@@ -103,13 +103,25 @@ public class ReminderSetupScreen extends JPanel {
             }
 
             Reminder reminder = new Reminder(type, intervalMinutes);
-            // If your Reminder class supports setting nextReminderTime, set it here:
-            // reminder.setNextReminderTime(nextReminderTime);
-
-            reminderManager.addReminder(reminder);
-
-            JOptionPane.showMessageDialog(this, "Reminder set for " + type + ".\n" + reminderSpecificNotes);
-            goBackCallback.run();
+            try {
+                reminderManager.addReminder(reminder);
+                JOptionPane.showMessageDialog(this, "Reminder set for " + type + ".\n" + reminderSpecificNotes);
+                goBackCallback.run();
+            } catch (IllegalStateException ex) {
+                JOptionPane.showMessageDialog(
+                    this,
+                    "A reminder with this type and interval already exists.\nPlease choose a different interval or type.",
+                    "Duplicate Reminder",
+                    JOptionPane.ERROR_MESSAGE
+                );
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(
+                    this,
+                    "An error occurred while adding the reminder:\n" + ex.getMessage(),
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE
+                );
+            }
         });
 
         // Back Button Action Listener

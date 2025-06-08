@@ -1,5 +1,0 @@
-Reminder Type: Eye Strain
-Interval: 1 minutes
-Created At: 2025-06-07T18:17:16.916397800
-Next Reminder: 2025-06-07T18:18:16.916397800
----------------

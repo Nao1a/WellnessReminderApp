@@ -38,13 +38,45 @@ public class ReminderManager {
 
         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
             String line;
+            String currentId = null;
+            String currentType = null;
+            int currentInterval = 0;
+            
             while ((line = reader.readLine()) != null) {
-                if (line.startsWith("Reminder Type:")) {
-                    String type = line.split(":")[1].trim();
-                    String intervalLine = reader.readLine();
-                    int interval = Integer.parseInt(intervalLine.split(":")[1].trim().split(" ")[0]);
-                    reminders.add(new Reminder(type, interval));
+                if (line.startsWith("ID:")) {
+                    // If we have a complete reminder, add it
+                    if (currentId != null && currentType != null) {
+                        Reminder reminder = new Reminder(currentType, currentInterval);
+                        // Set the ID manually since we're loading from file
+                        try {
+                            java.lang.reflect.Field idField = Reminder.class.getDeclaredField("id");
+                            idField.setAccessible(true);
+                            idField.set(reminder, currentId);
+                        } catch (Exception e) {
+                            System.err.println("Failed to set reminder ID: " + e.getMessage());
+                        }
+                        reminders.add(reminder);
+                    }
+                    // Start new reminder
+                    currentId = line.split(":")[1].trim();
+                } else if (line.startsWith("Reminder Type:")) {
+                    currentType = line.split(":")[1].trim();
+                } else if (line.startsWith("Interval:")) {
+                    currentInterval = Integer.parseInt(line.split(":")[1].trim().split(" ")[0]);
                 }
+            }
+            
+            // Add the last reminder if exists
+            if (currentId != null && currentType != null) {
+                Reminder reminder = new Reminder(currentType, currentInterval);
+                try {
+                    java.lang.reflect.Field idField = Reminder.class.getDeclaredField("id");
+                    idField.setAccessible(true);
+                    idField.set(reminder, currentId);
+                } catch (Exception e) {
+                    System.err.println("Failed to set reminder ID: " + e.getMessage());
+                }
+                reminders.add(reminder);
             }
         } catch (IOException e) {
             System.err.println("Failed to load reminders: " + e.getMessage());
@@ -121,6 +153,7 @@ public class ReminderManager {
     private void saveReminders() {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(reminderFileName))) {
             for (Reminder reminder : reminders) {
+                writer.write("ID: " + reminder.getId() + "\n");
                 writer.write("Reminder Type: " + reminder.getType() + "\n");
                 writer.write("Interval: " + reminder.getIntervalMinutes() + " minutes\n");
                 writer.write("Created At: " + reminder.getCreatedAt() + "\n");
@@ -230,5 +263,64 @@ public class ReminderManager {
     public void addReminder(Reminder reminder) {
         reminders.add(reminder);
         saveReminders();
+    }
+
+    /**
+     * Deletes a reminder by its unique ID.
+     * @param id The unique ID of the reminder to delete
+     * @throws IllegalArgumentException if id is null or empty
+     * @throws IllegalStateException if no reminder with the given ID is found
+     */
+    public void deleteReminderById(String id) {
+        // Input validation
+        if (id == null || id.trim().isEmpty()) {
+            throw new IllegalArgumentException("Reminder ID cannot be null or empty");
+        }
+
+        // Remove from memory
+        boolean removed = reminders.removeIf(r -> r.getId().equals(id.trim()));
+
+        if (!removed) {
+            throw new IllegalStateException("No reminder found with ID: " + id);
+        }
+
+        // Remove from file
+        try {
+            Path reminderPath = Paths.get(reminderFileName);
+            if (!Files.exists(reminderPath)) {
+                throw new FileNotFoundException("Reminder file not found: " + reminderFileName);
+            }
+
+            List<String> lines = Files.readAllLines(reminderPath);
+            List<String> newLines = new ArrayList<>();
+            boolean skipNext = false;
+            int linesToSkip = 0;
+
+            for (int i = 0; i < lines.size(); i++) {
+                String line = lines.get(i);
+                // Check if this is the start of the reminder to delete
+                if (line.startsWith("ID:") && line.substring("ID:".length()).trim().equals(id.trim())) {
+                    skipNext = true;
+                    linesToSkip = 6; // Skip ID, type, interval, created, next, separator
+                    continue;
+                }
+                // Skip lines if we're in the middle of the reminder to delete
+                if (skipNext) {
+                    linesToSkip--;
+                    if (linesToSkip <= 0) {
+                        skipNext = false;
+                    }
+                    continue;
+                }
+                newLines.add(line);
+            }
+            // Write back the file with the reminder removed
+            Files.write(reminderPath, newLines, StandardOpenOption.TRUNCATE_EXISTING);
+            // Log the deletion
+            logReminderResponse(new Reminder("Deleted", 0), "DELETED_BY_ID");
+        } catch (IOException e) {
+            // Restore the reminder in memory if file operation fails
+            throw new RuntimeException("Failed to delete reminder from file: " + e.getMessage(), e);
+        }
     }
 }
