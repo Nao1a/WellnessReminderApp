@@ -7,12 +7,12 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 public class ReminderChecker {
-    private final ReminderService reminderService;
+    private final ReminderManager reminderManager;
     private final NotificationService notificationService;
     private Timer timer;
 
-    public ReminderChecker(ReminderService reminderService, NotificationService notificationService) {
-        this.reminderService = reminderService;
+    public ReminderChecker(ReminderManager reminderManager, NotificationService notificationService) {
+        this.reminderManager = reminderManager;
         this.notificationService = notificationService;
     }
 
@@ -33,7 +33,7 @@ public class ReminderChecker {
     }
 
     private void checkReminders() {
-        List<Reminder> reminders = reminderService.getReminders();
+        List<Reminder> reminders = reminderManager.getReminders(); // Use ReminderManager
         LocalDateTime now = LocalDateTime.now();
 
         for (Reminder reminder : reminders) {
@@ -43,7 +43,8 @@ public class ReminderChecker {
                     "Time for your " + reminder.getType() + " reminder!"
                 );
                 reminder.updateNextReminderTime();
+                reminderManager.saveReminders(); // Save updated reminders
             }
         }
     }
-} 
+}

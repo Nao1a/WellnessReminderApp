@@ -1,9 +1,9 @@
-import screens.WelcomeScreen; // Changed from LoginScreen
+import java.awt.Dimension; // Changed from LoginScreen
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
-import java.awt.Dimension;
-import services.*;
 import models.User;
+import screens.WelcomeScreen;
+import services.*;
 
 public class Main {
     public static void main(String[] args) {
@@ -11,7 +11,8 @@ public class Main {
         User currentUser = new User("naol", "pass231", "USER");
         ReminderService reminderService = new ReminderService();
         NotificationService notificationService = new NotificationService();
-        ReminderChecker checker = new ReminderChecker(reminderService, notificationService);
+        ReminderManager reminderManager = new ReminderManager(currentUser);
+        ReminderChecker checker = new ReminderChecker(reminderManager, notificationService);
 
         // Start the reminder checker
         checker.startChecking();

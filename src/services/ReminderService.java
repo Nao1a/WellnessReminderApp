@@ -1,10 +1,10 @@
 package services;
 
-import models.Reminder;
 import java.io.*;
 import java.nio.file.*;
 import java.util.ArrayList;
 import java.util.List;
+import models.Reminder;
 
 public class ReminderService {
     private static final String REMINDER_LOG_FILE = "assets/reminderlog.txt";

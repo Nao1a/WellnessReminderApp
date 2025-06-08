@@ -36,6 +36,10 @@ public class Reminder {
         return nextReminderTime;
     }
 
+    public void setNextReminderTime(LocalDateTime nextReminderTime) {
+        this.nextReminderTime = nextReminderTime;
+    }
+
     public String getId() {
         return id;
     }
