@@ -6,39 +6,59 @@ import models.User;
 import services.AuthService;
 import services.ReminderManager;
 
-public class LoginScreen extends JPanel { // Changed from JFrame
-
-    
-
+public class LoginScreen extends JPanel {
     public LoginScreen() {
-        // setTitle("wellness App - Login"); // No longer a JFrame
-        // setSize(400, 300); // No longer a JFrame
-        // setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); // No longer a JFrame
-        setLayout(new GridLayout(5, 1, 10, 10)); // Increased rows for better spacing
-        setBorder(BorderFactory.createEmptyBorder(50, 50, 50, 50)); // Add padding
+        setPreferredSize(new Dimension(400, 300));
+        setLayout(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(10, 10, 10, 10);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
 
+        JLabel userLabel = new JLabel("Username:");
         JTextField usernameField = new JTextField();
+        usernameField.setPreferredSize(new Dimension(180, 28));
+
+        JLabel passLabel = new JLabel("Password:");
         JPasswordField passwordField = new JPasswordField();
+        passwordField.setPreferredSize(new Dimension(180, 28));
+
         JButton loginButton = new JButton("Login");
         loginButton.setFont(new Font("Arial", Font.PLAIN, 16));
         JLabel messageLabel = new JLabel("", SwingConstants.CENTER);
         messageLabel.setFont(new Font("Arial", Font.ITALIC, 14));
 
-        JPanel userPanel = new JPanel(new BorderLayout(5,0));
-        userPanel.add(new JLabel("Username:"), BorderLayout.WEST);
-        userPanel.add(usernameField, BorderLayout.CENTER);
+        // Username row
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.gridwidth = 1;
+        gbc.anchor = GridBagConstraints.EAST;
+        add(userLabel, gbc);
+        gbc.gridx = 1;
+        gbc.anchor = GridBagConstraints.WEST;
+        add(usernameField, gbc);
 
-        JPanel passPanel = new JPanel(new BorderLayout(5,0));
-        passPanel.add(new JLabel("Password:"), BorderLayout.WEST);
-        passPanel.add(passwordField, BorderLayout.CENTER);
-        
-        add(userPanel);
-        add(passPanel);
+        // Password row
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        gbc.anchor = GridBagConstraints.EAST;
+        add(passLabel, gbc);
+        gbc.gridx = 1;
+        gbc.anchor = GridBagConstraints.WEST;
+        add(passwordField, gbc);
 
-        JPanel buttonHolder = new JPanel(new FlowLayout(FlowLayout.CENTER)); // To center the button
-        buttonHolder.add(loginButton);
-        add(buttonHolder);
-        add(messageLabel);
+        // Login button row
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        gbc.gridwidth = 2;
+        gbc.anchor = GridBagConstraints.CENTER;
+        add(loginButton, gbc);
+
+        // Message label row
+        gbc.gridx = 0;
+        gbc.gridy = 3;
+        gbc.gridwidth = 2;
+        gbc.anchor = GridBagConstraints.CENTER;
+        add(messageLabel, gbc);
 
         loginButton.addActionListener(e -> {
             String username = usernameField.getText();
@@ -50,10 +70,8 @@ public class LoginScreen extends JPanel { // Changed from JFrame
             if (user != null) {
                 messageLabel.setText("Login successful as " + user.getRole());
                 if (user.getRole().equalsIgnoreCase("USER")) {
-                    // Initialize ReminderManager only after successful login
                     ReminderManager reminderManager = ReminderManager.getInstance(user);
-                    reminderManager.start(); // Start checking reminders
-                    
+                    reminderManager.start();
                     UserDashboard dashboardPanel = new UserDashboard(user);
                     if (currentFrame != null) {
                         currentFrame.setContentPane(dashboardPanel);
@@ -65,9 +83,9 @@ public class LoginScreen extends JPanel { // Changed from JFrame
                     }
                 } else if (user.getRole().equalsIgnoreCase("DOCTOR")) {
                     DoctorDashboard doctorPanel = new DoctorDashboard(
-                        user.getUsername(), // Pass the logged-in doctor's username
+                        user.getUsername(),
                         () -> {
-                            currentFrame.setContentPane(this); // Go back to LoginScreen
+                            currentFrame.setContentPane(this);
                             currentFrame.setTitle("Wellness App - Login");
                             currentFrame.revalidate();
                             currentFrame.repaint();
@@ -86,6 +104,5 @@ public class LoginScreen extends JPanel { // Changed from JFrame
                 messageLabel.setText("Invalid username or password. Please try again.");
             }
         });
-        // setVisible(true); // No longer a JFrame, container controls visibility
     }
 }
