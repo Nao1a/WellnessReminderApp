@@ -155,7 +155,16 @@ public class ReminderManager {
         dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
         
         JPanel panel = new JPanel(new BorderLayout());
-        JLabel messageLabel = new JLabel("It's time for your " + reminder.getType() + " reminder!");
+        StringBuilder message = new StringBuilder("It's time for your " + reminder.getType() + " reminder!");
+        if (reminder.getType().equalsIgnoreCase("Medication")) {
+            if (reminder.getMedicineType() != null && !reminder.getMedicineType().isEmpty()) {
+                message.append("<br>Medicine: ").append(reminder.getMedicineType());
+            }
+            if (reminder.getDosage() != null && !reminder.getDosage().isEmpty()) {
+                message.append("<br>Dosage: ").append(reminder.getDosage());
+            }
+        }
+        JLabel messageLabel = new JLabel("<html>" + message.toString() + "</html>");
         messageLabel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         panel.add(messageLabel, BorderLayout.CENTER);
         

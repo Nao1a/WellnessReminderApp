@@ -9,6 +9,8 @@ public class Reminder {
     private LocalDateTime createdAt;
     private LocalDateTime nextReminderTime;
     private String id; // Unique ID based on creation time
+    private String medicineType; // For medication reminders
+    private String dosage; // For medication reminders
 
     public Reminder(String type, int intervalMinutes) {
         this.type = type;
@@ -48,9 +50,33 @@ public class Reminder {
         this.nextReminderTime = LocalDateTime.now().plusMinutes(intervalMinutes);
     }
 
+    public void setMedicineType(String medicineType) {
+        this.medicineType = medicineType;
+    }
+
+    public String getMedicineType() {
+        return medicineType;
+    }
+
+    public void setDosage(String dosage) {
+        this.dosage = dosage;
+    }
+
+    public String getDosage() {
+        return dosage;
+    }
+
     @Override
     public String toString() {
-        return String.format("ID: %s\nReminder Type: %s\nInterval: %d minutes\nCreated At: %s\nNext Reminder: %s\n---------------",
+        String base = String.format("ID: %s\nReminder Type: %s\nInterval: %d minutes\nCreated At: %s\nNext Reminder: %s",
             id, type, intervalMinutes, createdAt, nextReminderTime);
+        if (medicineType != null && !medicineType.isEmpty()) {
+            base += String.format("\nMedicine Type: %s", medicineType);
+        }
+        if (dosage != null && !dosage.isEmpty()) {
+            base += String.format("\nDosage: %s", dosage);
+        }
+        base += "\n---------------";
+        return base;
     }
 }

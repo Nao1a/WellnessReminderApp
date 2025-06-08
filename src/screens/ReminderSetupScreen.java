@@ -22,13 +22,21 @@ public class ReminderSetupScreen extends JPanel {
 
         final JComboBox<String>[] timeDropdown = new JComboBox[]{null};
         final JComboBox<String>[] intervalDropdown = new JComboBox[]{null};
+        final JTextField[] medicineTypeField = new JTextField[]{null};
+        final JTextField[] dosageField = new JTextField[]{null};
 
-        // Configure dropdowns based on reminder type
+        // Configure dropdowns and fields based on reminder type
         if (type.equalsIgnoreCase("Hydration")) {
             add(new JLabel("Interval:"));
             intervalDropdown[0] = new JComboBox<>(new String[]{"30 minutes", "1 hour", "2 hours", "3 hours", "4 hours"});
             add(intervalDropdown[0]);
         } else if (type.equalsIgnoreCase("Medication")) {
+            add(new JLabel("Medicine Type:"));
+            medicineTypeField[0] = new JTextField();
+            add(medicineTypeField[0]);
+            add(new JLabel("Dosage:"));
+            dosageField[0] = new JTextField();
+            add(dosageField[0]);
             add(new JLabel("Interval:"));
             intervalDropdown[0] = new JComboBox<>(new String[]{"1 hour", "2 hours", "3 hours", "4 hours", "6 hours", "8 hours", "12 hours", "24 hours"});
             add(intervalDropdown[0]);
@@ -78,12 +86,26 @@ public class ReminderSetupScreen extends JPanel {
             String selectedTime = (timeDropdown[0] != null) ? (String) timeDropdown[0].getSelectedItem() : null;
             String selectedInterval = (intervalDropdown[0] != null) ? (String) intervalDropdown[0].getSelectedItem() : null;
 
+            String medicineType = null;
+            String dosage = null;
+            if (type.equalsIgnoreCase("Medication")) {
+                medicineType = (medicineTypeField[0] != null) ? medicineTypeField[0].getText().trim() : null;
+                dosage = (dosageField[0] != null) ? dosageField[0].getText().trim() : null;
+                if (medicineType == null || medicineType.isEmpty() || dosage == null || dosage.isEmpty()) {
+                    JOptionPane.showMessageDialog(this, "Please enter both medicine type and dosage.", "Input Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+            }
+
             if (selectedTime == null && selectedInterval == null) {
                 JOptionPane.showMessageDialog(this, "Please select a valid time or interval.", "Input Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
 
             String reminderSpecificNotes = (selectedTime != null) ? "Time: " + selectedTime : "Interval: " + selectedInterval;
+            if (type.equalsIgnoreCase("Medication")) {
+                reminderSpecificNotes += " | Medicine: " + medicineType + " | Dosage: " + dosage;
+            }
 
             int intervalMinutes = 0;
             java.time.LocalDateTime nextReminderTime = java.time.LocalDateTime.now();
@@ -131,6 +153,10 @@ public class ReminderSetupScreen extends JPanel {
             }
 
             Reminder reminder = new Reminder(type, intervalMinutes);
+            if (type.equalsIgnoreCase("Medication")) {
+                reminder.setMedicineType(medicineType);
+                reminder.setDosage(dosage);
+            }
             reminder.setNextReminderTime(nextReminderTime);
             try {
                 reminderManager.addReminder(reminder);

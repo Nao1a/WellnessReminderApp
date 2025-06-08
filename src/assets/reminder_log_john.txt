@@ -1,4 +1,0 @@
-Movement|2025-06-08T12:22:28.558940400|DELETED_BY_ID|User interacted with reminder.
-Movement|2025-06-08T12:26:27.577484400|DELETED_BY_ID|User interacted with reminder.
-Hydration|2025-06-08T12:26:34.803096500|DELETED_BY_ID|User interacted with reminder.
-Medication|2025-06-08T12:26:39.905953900|DELETED_BY_ID|User interacted with reminder.

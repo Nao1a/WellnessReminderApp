@@ -1,6 +1,0 @@
-Reminder ID:20250608143521
-Type:Meal
-Interval:1440 minutes
-Created At:2025-06-08T14:35:21.303157700
-Next Reminder:2025-06-09T08:00:00.000000000
-
