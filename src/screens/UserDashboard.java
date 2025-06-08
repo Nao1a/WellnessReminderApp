@@ -13,7 +13,7 @@ public class UserDashboard extends JPanel { // Changed from JFrame
 
     public UserDashboard(User user) { // Constructor now only takes User
         this.loggedInUser = user;
-        this.reminderManager = new ReminderManager(user);
+        this.reminderManager = ReminderManager.getInstance(user);
         // JFrame specific setup (setTitle, setSize, setDefaultCloseOperation) removed
         showDashboard();
     }

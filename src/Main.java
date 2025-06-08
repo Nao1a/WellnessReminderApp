@@ -11,17 +11,13 @@ public class Main {
         User currentUser = new User("naol", "pass231", "USER");
         ReminderService reminderService = new ReminderService();
         NotificationService notificationService = new NotificationService();
-        ReminderManager reminderManager = new ReminderManager(currentUser);
-        ReminderChecker checker = new ReminderChecker(reminderManager, notificationService);
-
-        // Start the reminder checker
-        checker.startChecking();
+        ReminderManager reminderManager = ReminderManager.getInstance(currentUser);
 
         // Start the GUI
         SwingUtilities.invokeLater(() -> {
-            JFrame mainFrame = new JFrame("Wellness Reminder App");
+            JFrame mainFrame = new JFrame("Wellness App");
             mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-            mainFrame.setSize(new Dimension(800, 600));
+            mainFrame.setSize(800, 600);
             mainFrame.setLocationRelativeTo(null);
             mainFrame.setContentPane(new WelcomeScreen());
             mainFrame.setVisible(true);

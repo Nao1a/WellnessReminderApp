@@ -104,3 +104,25 @@ Deleted|2025-06-08T11:58:58.199529100|DELETED_BY_ID|User interacted with reminde
 : Eye Strain|2025-06-08T12:03:46.288801200|Acknowledged|User interacted with reminder.
 : Eye Strain|2025-06-08T12:04:21.151746800|No Response|User interacted with reminder.
 : Eye Strain|2025-06-08T12:04:22.700462600|No Response|User interacted with reminder.
+: : Movement|2025-06-08T12:13:32.702290|DELETED_BY_ID|User interacted with reminder.
+: Eye Strain|2025-06-08T12:14:30.178381700|Acknowledged|User interacted with reminder.
+: Eye Strain|2025-06-08T12:15:35.039064500|Acknowledged|User interacted with reminder.
+: Eye Strain|2025-06-08T12:16:32.588643400|Acknowledged|User interacted with reminder.
+: : Eye Strain|2025-06-08T12:16:39.176490400|DELETED_BY_ID|User interacted with reminder.
+: Eye Strain|2025-06-08T12:17:50.804686|Acknowledged|User interacted with reminder.
+Eye Strain|2025-06-08T12:30:49.388181200|Acknowledged|User interacted with reminder.
+Eye Strain|2025-06-08T12:34:06.383243200|Acknowledged|User interacted with reminder.
+: Eye Strain|2025-06-08T12:34:55.629332300|DELETED_BY_ID|User interacted with reminder.
+: Movement|2025-06-08T12:35:03.344625700|DELETED_BY_ID|User interacted with reminder.
+Eye Strain|2025-06-08T12:38:03.932528400|Acknowledged|User interacted with reminder.
+Eye Strain|2025-06-08T12:39:46.262728200|Snoozed|User interacted with reminder.
+Eye Strain|2025-06-08T12:39:48.803733200|Snoozed|User interacted with reminder.
+Eye Strain|2025-06-08T12:40:04.672409500|Snoozed|User interacted with reminder.
+Eye Strain|2025-06-08T12:40:33.686008|Acknowledged|User interacted with reminder.
+Eye Strain|2025-06-08T12:42:02.638171600|Acknowledged|User interacted with reminder.
+Eye Strain|2025-06-08T12:43:21.655200100|Missed|User interacted with reminder.
+Eye Strain|2025-06-08T13:05:56.791844|Acknowledged|User interacted with reminder.
+Eye Strain|2025-06-08T13:07:00.856118900|Missed|User interacted with reminder.
+Eye Strain|2025-06-08T13:07:51.202091|Snoozed|User interacted with reminder.
+Eye Strain|2025-06-08T13:08:24.576125500|Snoozed|User interacted with reminder.
+Eye Strain|2025-06-08T13:08:50.410566400|Acknowledged|User interacted with reminder.

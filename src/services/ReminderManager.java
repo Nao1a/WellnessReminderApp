@@ -10,14 +10,16 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.Timer;
 import javax.swing.*;
+import java.awt.*;
 import models.Reminder;
 import models.ReminderLog;
 import models.User;
 import java.nio.charset.StandardCharsets;
 
 public class ReminderManager {
+    private static final Map<String, ReminderManager> instances = new HashMap<>();
     private final User loggedInUser;
-    private final List<Reminder> reminders = new ArrayList<>();
+    private final ArrayList<Reminder> reminders = new ArrayList<>();
     private final Timer timer = new Timer();
     private final NotificationService notificationService;
     private final String reminderFileName;
@@ -25,7 +27,11 @@ public class ReminderManager {
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss[.SSSSSSSSS][.SSSSSS]");
     private final ReminderService reminderService;
 
-    public ReminderManager(User user) {
+    public static ReminderManager getInstance(User user) {
+        return instances.computeIfAbsent(user.getUsername(), k -> new ReminderManager(user));
+    }
+
+    private ReminderManager(User user) {
         this.loggedInUser = user;
         this.notificationService = new NotificationService();
         this.reminderFileName = "assets/reminder_" + user.getUsername() + ".txt";
@@ -34,71 +40,63 @@ public class ReminderManager {
         startReminderCheck();
     }
 
-    private void loadReminders() {
-        File file = new File(reminderFileName);
-
-        if (!file.exists()) {
-            System.out.println("No reminders found for user: " + loggedInUser.getUsername());
-            return;
-        }
-
+    public void loadReminders() {
         try {
-            // Read the entire file content first
-            String content = new String(Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8);
-            // Normalize line endings and remove any BOM
-            content = content.replace("\r\n", "\n").replace("\r", "\n").replace("\uFEFF", "");
-            
-            String[] lines = content.split("\n");
-            String currentId = null;
-            String currentType = null;
-            int currentInterval = 0;
-            LocalDateTime currentNextReminder = null;
+            Path filePath = Paths.get(reminderFileName);
+            if (!Files.exists(filePath)) {
+                return;
+            }
 
-            for (String line : lines) {
-                line = line.trim();
-                System.out.println("Processing line: [" + line + "]"); // Debug log
-                
-                if (line.startsWith("ID:")) {
-                    currentId = line.substring(3).trim();
-                } else if (line.startsWith("Reminder Type:")) {
-                    currentType = line.substring(13).trim();
-                } else if (line.startsWith("Interval:")) {
-                    currentInterval = Integer.parseInt(line.substring(9).trim().split(" ")[0]);
-                } else if (line.startsWith("Next Reminder:")) {
-                    String dateStr = line.substring(14).trim();
-                    System.out.println("Parsing date string: [" + dateStr + "]"); // Debug log
-                    try {
-                        currentNextReminder = LocalDateTime.parse(dateStr, DATE_TIME_FORMATTER);
-                    } catch (Exception e) {
-                        System.err.println("Failed to parse date: [" + dateStr + "]");
-                        System.err.println("Error: " + e.getMessage());
-                        throw e;
-                    }
-                } else if (line.startsWith("---------------")) {
-                    // Check for duplicates before adding
-                    final String idToCheck = currentId;
-                    boolean exists = reminders.stream().anyMatch(r -> r.getId().equals(idToCheck));
-                    if (!exists) {
-                        Reminder reminder = new Reminder(currentType, currentInterval);
-                        reminder.setNextReminderTime(currentNextReminder);
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(
+                    new FileInputStream(reminderFileName), StandardCharsets.UTF_8))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    line = line.replaceAll("[\uFEFF\u200B]", ""); // Remove BOM and zero-width spaces
+                    if (line.startsWith("Reminder ID:")) {
+                        String id = line.substring("Reminder ID:".length()).trim();
+                        String type = reader.readLine().substring("Type:".length()).trim();
+                        String intervalStr = reader.readLine().substring("Interval:".length()).trim();
+                        String createdAt = reader.readLine().substring("Created At:".length()).trim();
+                        String nextReminder = reader.readLine().substring("Next Reminder:".length()).trim();
+                        
+                        // Skip the empty line
+                        reader.readLine();
+                        
                         try {
-                            java.lang.reflect.Field idField = Reminder.class.getDeclaredField("id");
-                            idField.setAccessible(true);
-                            idField.set(reminder, currentId);
+                            int intervalMinutes = parseIntervalMinutes(intervalStr);
+                            Reminder reminder = new Reminder(type, intervalMinutes);
+                            // Set the ID and next reminder time manually since they're not in the constructor
+                            try {
+                                java.lang.reflect.Field idField = Reminder.class.getDeclaredField("id");
+                                idField.setAccessible(true);
+                                idField.set(reminder, id);
+                            } catch (Exception e) {
+                                System.err.println("Failed to set reminder ID: " + e.getMessage());
+                            }
+                            reminder.setNextReminderTime(LocalDateTime.parse(nextReminder, DATE_TIME_FORMATTER));
+                            
+                            // Check for duplicates before adding
+                            boolean isDuplicate = false;
+                            for (Reminder existingReminder : reminders) {
+                                if (existingReminder.getId().equals(reminder.getId())) {
+                                    isDuplicate = true;
+                                    break;
+                                }
+                            }
+                            
+                            if (!isDuplicate) {
+                                reminders.add(reminder);
+                            }
                         } catch (Exception e) {
-                            System.err.println("Failed to set reminder ID: " + e.getMessage());
+                            System.err.println("Error parsing reminder: " + e.getMessage());
+                            e.printStackTrace();
                         }
-                        reminders.add(reminder);
                     }
-                    // Reset current reminder fields
-                    currentId = null;
-                    currentType = null;
-                    currentInterval = 0;
-                    currentNextReminder = null;
                 }
             }
         } catch (IOException e) {
-            System.err.println("Failed to load reminders: " + e.getMessage());
+            System.err.println("Error loading reminders: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
@@ -108,7 +106,7 @@ public class ReminderManager {
             public void run() {
                 checkReminders();
             }
-        }, 0, 60000); // Check every minute
+        }, 0, 30000); // Check every 30 seconds (30000 milliseconds)
     }
 
     private void checkReminders() {
@@ -120,7 +118,6 @@ public class ReminderManager {
             if (now.isAfter(reminder.getNextReminderTime()) || now.isEqual(reminder.getNextReminderTime())) {
                 System.out.println("Triggering notification for reminder: " + reminder.getType());
                 showReminderPopup(reminder);
-                reminder.updateNextReminderTime();
                 needsSave = true;
             }
         }
@@ -132,18 +129,56 @@ public class ReminderManager {
 
     private void showReminderPopup(Reminder reminder) {
         String[] options = {"Acknowledge", "Snooze", "Missed"};
-        int choice = JOptionPane.showOptionDialog(
-                null,
-                "It's time for your " + reminder.getType() + " reminder!",
-                "Reminder Alert",
-                JOptionPane.DEFAULT_OPTION,
-                JOptionPane.INFORMATION_MESSAGE,
-                null,
-                options,
-                options[0]
-        );
-
-        handleUserResponse(reminder, choice);
+        JDialog dialog = new JDialog((Window) null, "Reminder Alert", Dialog.ModalityType.APPLICATION_MODAL);
+        dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+        
+        JPanel panel = new JPanel(new BorderLayout());
+        JLabel messageLabel = new JLabel("It's time for your " + reminder.getType() + " reminder!");
+        messageLabel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        panel.add(messageLabel, BorderLayout.CENTER);
+        
+        JPanel buttonPanel = new JPanel();
+        JButton acknowledgeBtn = new JButton("Acknowledge");
+        JButton snoozeBtn = new JButton("Snooze");
+        JButton missedBtn = new JButton("Missed");
+        
+        buttonPanel.add(acknowledgeBtn);
+        buttonPanel.add(snoozeBtn);
+        buttonPanel.add(missedBtn);
+        panel.add(buttonPanel, BorderLayout.SOUTH);
+        
+        dialog.add(panel);
+        dialog.pack();
+        dialog.setLocationRelativeTo(null);
+        
+        // Set up button actions
+        acknowledgeBtn.addActionListener(e -> {
+            dialog.dispose();
+            handleUserResponse(reminder, 0); // Acknowledge
+        });
+        
+        snoozeBtn.addActionListener(e -> {
+            dialog.dispose();
+            handleUserResponse(reminder, 1); // Snooze
+        });
+        
+        missedBtn.addActionListener(e -> {
+            dialog.dispose();
+            handleUserResponse(reminder, 2); // Missed
+        });
+        
+        // Create a timer to automatically handle missed notification after 30 seconds
+        javax.swing.Timer autoCloseTimer = new javax.swing.Timer(30000, e -> {
+            if (dialog.isVisible()) {
+                dialog.dispose();
+                handleUserResponse(reminder, 2); // Treat as missed
+            }
+        });
+        autoCloseTimer.setRepeats(false);
+        
+        // Show the dialog and start the timer
+        dialog.setVisible(true);
+        autoCloseTimer.start();
     }
 
     private void handleUserResponse(Reminder reminder, int choice) {
@@ -157,7 +192,10 @@ public class ReminderManager {
                 response = "Snoozed";
                 snoozeReminder(reminder);
             }
-            case 2 -> response = "Missed";
+            case 2 -> { // Missed
+                response = "Missed";
+                updateNextReminder(reminder); // Update the next reminder time even if missed
+            }
             default -> response = "No Response";
         }
 
@@ -183,17 +221,29 @@ public class ReminderManager {
     }
 
     public void saveReminders() {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(reminderFileName))) {
-            for (Reminder reminder : reminders) {
-                writer.write("ID: " + reminder.getId() + "\n");
-                writer.write("Reminder Type: " + reminder.getType() + "\n");
-                writer.write("Interval: " + reminder.getIntervalMinutes() + " minutes\n");
-                writer.write("Created At: " + reminder.getCreatedAt() + "\n");
-                writer.write("Next Reminder: " + reminder.getNextReminderTime() + "\n");
-                writer.write("---------------\n");
+        try {
+            Path filePath = Paths.get(reminderFileName);
+            Files.createDirectories(filePath.getParent());
+            
+            try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(
+                    new FileOutputStream(reminderFileName), StandardCharsets.UTF_8))) {
+                for (Reminder reminder : reminders) {
+                    writer.write("Reminder ID:" + reminder.getId());
+                    writer.newLine();
+                    writer.write("Type:" + reminder.getType());
+                    writer.newLine();
+                    writer.write("Interval:" + reminder.getIntervalMinutes() + " minutes");
+                    writer.newLine();
+                    writer.write("Created At:" + reminder.getCreatedAt());
+                    writer.newLine();
+                    writer.write("Next Reminder:" + reminder.getNextReminderTime().format(DATE_TIME_FORMATTER));
+                    writer.newLine();
+                    writer.newLine();
+                }
             }
         } catch (IOException e) {
-            System.err.println("Failed to save reminders: " + e.getMessage());
+            System.err.println("Error saving reminders: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
@@ -213,6 +263,7 @@ public class ReminderManager {
 
     public void stop() {
         timer.cancel();
+        instances.remove(loggedInUser.getUsername());
     }
 
     // Helper method to parse interval string to minutes
@@ -286,8 +337,8 @@ public class ReminderManager {
         try {
             Path reminderPath = Paths.get(reminderFileName);
             if (Files.exists(reminderPath)) {
-                List<String> lines = Files.readAllLines(reminderPath);
-                List<String> newLines = new ArrayList<>();
+                ArrayList<String> lines = new ArrayList<>(Files.readAllLines(reminderPath));
+                ArrayList<String> newLines = new ArrayList<>();
                 boolean skipNext = false;
                 int linesToSkip = 0;
 
@@ -307,29 +358,35 @@ public class ReminderManager {
                     }
                     newLines.add(line);
                 }
-                Files.write(reminderPath, newLines, StandardOpenOption.TRUNCATE_EXISTING);
-            }
 
-            // Log the deletion
-            logReminderResponse(reminderToDelete, "DELETED_BY_ID");
+                Files.write(reminderPath, newLines);
+            }
         } catch (IOException e) {
-            // Restore the reminder in memory if file operation fails
-            throw new RuntimeException("Failed to delete reminder from file: " + e.getMessage(), e);
+            System.err.println("Error removing reminder from file: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
     public void updateNextReminder(Reminder reminder) {
-        // Calculate the new next reminder time
-        LocalDateTime nextReminderTime = reminder.getNextReminderTime().plusMinutes(reminder.getIntervalMinutes());
+        // Calculate the new next reminder time based on the last reminder time
+        LocalDateTime lastReminderTime = reminder.getNextReminderTime();
+        LocalDateTime nextReminderTime = lastReminderTime.plusMinutes(reminder.getIntervalMinutes());
+        
+        // If the calculated next time is in the past or too close to now, adjust it
+        LocalDateTime now = LocalDateTime.now();
+        if (nextReminderTime.isBefore(now) || nextReminderTime.isEqual(now)) {
+            nextReminderTime = now.plusMinutes(reminder.getIntervalMinutes());
+        }
+        
         reminder.setNextReminderTime(nextReminderTime);
-
+        
         // Save the updated reminders to the file
         saveReminders();
-
+        
         System.out.println("Updated next reminder for " + reminder.getType() + " to: " + nextReminderTime);
     }
 
-    public List<Reminder> getReminders() {
-        return reminders;
+    public ArrayList<Reminder> getReminders() {
+        return new ArrayList<>(reminders);
     }
 }

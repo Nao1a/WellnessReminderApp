@@ -12,7 +12,7 @@ public class ReminderSetupScreen extends JPanel {
 
     public ReminderSetupScreen(User user, String type, Runnable goBackCallback) {
         this.loggedInUser = user;
-        this.reminderManager = new ReminderManager(user);
+        this.reminderManager = ReminderManager.getInstance(user);
 
         setLayout(new GridLayout(0, 2, 10, 10));
         setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));

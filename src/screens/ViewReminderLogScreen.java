@@ -15,7 +15,7 @@ public class ViewReminderLogScreen extends JPanel {
 
     public ViewReminderLogScreen(User user, Runnable goBackCallback) {
         this.loggedInUser = user;
-        this.reminderManager = new ReminderManager(user);
+        this.reminderManager = ReminderManager.getInstance(user);
         setLayout(new BorderLayout(10, 10));
         setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
