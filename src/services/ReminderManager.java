@@ -370,7 +370,7 @@ public class ReminderManager {
 
                 for (int i = 0; i < lines.size(); i++) {
                     String line = lines.get(i);
-                    if (line.startsWith("ID:") && line.substring("ID:".length()).trim().equals(id.trim())) {
+                    if (line.startsWith("Reminder ID:") && line.substring("Reminder ID:".length()).trim().equals(id.trim())) {
                         skipNext = true;
                         linesToSkip = 6; // Skip ID, type, interval, created, next, separator
                         continue;

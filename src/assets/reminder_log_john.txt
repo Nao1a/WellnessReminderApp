@@ -1,0 +1,2 @@
+Eye Strain|2025-06-08T20:43:30.188108400|Acknowledged|User interacted with reminder.
+Eye Strain|2025-06-08T20:45:24.422935800|Acknowledged|User interacted with reminder.
